@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StrongApe — Communities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+.app-shell{display:flex;min-height:100vh;background:var(--bg-surface);}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--gradient-navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;box-shadow:var(--shadow-sidebar);}
+.sidebar-logo{padding:var(--space-5) var(--space-6);display:flex;align-items:center;gap:var(--space-3);border-bottom:1px solid rgba(255,255,255,0.08);min-height:var(--header-h);text-decoration:none;}
+.sidebar-logo-icon{width:36px;height:36px;background:var(--accent-primary);border-radius:var(--radius-md);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-text{font-weight:800;font-size:18px;color:#fff;}
+.sidebar-nav{flex:1;padding:var(--space-4) var(--space-3);overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:var(--space-3);padding:10px var(--space-3);border-radius:var(--radius-md);color:var(--text-on-dark-muted);transition:all var(--t-base);margin-bottom:2px;font-size:14px;font-weight:500;white-space:nowrap;border-left:3px solid transparent;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff;}.nav-item.active{background:rgba(0,102,255,0.2);color:#fff;font-weight:600;border-left-color:var(--accent-primary);}
+.nav-badge{margin-left:auto;background:var(--accent-error);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:var(--radius-full);}
+.sidebar-footer{padding:var(--space-4) var(--space-3);border-top:1px solid rgba(255,255,255,0.08);}
+.sidebar-user{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border-radius:var(--radius-md);transition:background var(--t-base);text-decoration:none;}
+.sidebar-user:hover{background:rgba(255,255,255,0.08);}
+.sidebar-user-name{font-size:13px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sidebar-user-level{font-size:11px;color:var(--text-on-dark-muted);}
+.xp-chip{background:rgba(0,102,255,0.3);border:1px solid rgba(0,102,255,0.4);color:var(--accent-ice);font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--radius-full);white-space:nowrap;}
+.app-header{position:fixed;top:0;right:0;left:var(--sidebar-w);z-index:100;height:var(--header-h);background:var(--bg-base);border-bottom:1px solid var(--bg-border);display:flex;align-items:center;padding:0 var(--space-6);gap:var(--space-4);}
+.header-search{flex:1;max-width:480px;display:flex;align-items:center;background:var(--bg-surface);border:1px solid var(--bg-border);border-radius:var(--radius-md);padding:0 var(--space-3);gap:var(--space-2);height:38px;}
+.header-search input{flex:1;border:none;background:none;outline:none;font-size:14px;color:var(--text-primary);font-family:inherit;}
+.header-search input::placeholder{color:var(--text-muted);}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:var(--space-3);}
+.app-main{margin-left:var(--sidebar-w);padding-top:var(--header-h);min-height:100vh;}
+.page-content{padding:var(--space-6);max-width:1280px;margin:0 auto;}
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:var(--bg-base);border-bottom:1px solid var(--bg-border);align-items:center;padding:0 var(--space-4);}
+.mobile-logo{font-weight:800;font-size:18px;color:var(--accent-navy);}
+.bottom-tab-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;height:var(--bottom-bar-h);background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border-top:1px solid var(--bg-border);align-items:center;justify-content:space-around;}
+.bottom-tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;border:none;background:none;cursor:pointer;color:var(--text-muted);font-size:10px;font-weight:500;transition:color var(--t-base);flex:1;font-family:inherit;text-decoration:none;}
+.bottom-tab.active{color:var(--accent-primary);}
+.bottom-tab-wrap{position:relative;flex:1;display:flex;justify-content:center;}
+.tab-badge{position:absolute;top:6px;right:calc(50% - 22px);background:var(--accent-error);color:#fff;font-size:9px;font-weight:700;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.notif-wrap{position:relative;}
+.notif-count{position:absolute;top:-4px;right:-4px;background:var(--accent-error);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-base);}
+/* PAGE */
+.communities-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin-top:var(--space-5);}
+.community-card{background:var(--bg-base);border:1px solid var(--bg-border);border-radius:var(--radius-xl);overflow:hidden;transition:all var(--t-slow);cursor:pointer;}
+.community-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-card-hover);}
+.cc-cover{height:110px;}
+.cc-info{padding:var(--space-4);}
+.cc-name{font-size:15px;font-weight:700;color:var(--accent-navy);margin-bottom:4px;}
+.cc-desc{font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:var(--space-3);}
+.cc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-3);}
+.member-count{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.filter-chip{padding:6px 14px;border-radius:var(--radius-full);font-size:12px;font-weight:500;background:var(--bg-base);border:1.5px solid var(--bg-border);color:var(--text-secondary);cursor:pointer;transition:all var(--t-base);}
+.filter-chip:hover,.filter-chip.active{border-color:var(--accent-primary);color:var(--accent-primary);background:rgba(0,102,255,0.05);}
+.my-pill{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);background:var(--bg-base);border:1px solid var(--bg-border);border-radius:var(--radius-full);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--t-base);text-decoration:none;color:var(--text-primary);}
+.my-pill:hover{border-color:var(--accent-primary);color:var(--accent-primary);}
+/* DETAIL PANEL */
+.detail-overlay{position:fixed;inset:0;background:rgba(10,22,40,0.4);z-index:299;display:none;}
+.detail-overlay.open{display:block;}
+.community-detail{position:fixed;top:0;right:-100%;bottom:0;width:100%;max-width:680px;background:var(--bg-base);z-index:300;box-shadow:var(--shadow-modal);overflow-y:auto;transition:right var(--t-slow);}
+.community-detail.open{right:0;}
+.d-cover{height:180px;position:relative;}
+.d-close{position:absolute;top:16px;left:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-card);color:var(--text-primary);}
+.d-header{padding:var(--space-5) var(--space-6);border-bottom:1px solid var(--bg-border);}
+.d-tabs{display:flex;border-bottom:1px solid var(--bg-border);padding:0 var(--space-6);}
+.d-tab{padding:12px 16px;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--t-base);}
+.d-tab:hover{color:var(--text-primary);}.d-tab.active{color:var(--accent-primary);border-bottom-color:var(--accent-primary);font-weight:600;}
+.d-body{padding:var(--space-5) var(--space-6);}
+.feed-post{background:var(--bg-base);border:1px solid var(--bg-border);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4);}
+.post-header{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3);}
+.post-content{color:var(--text-primary);line-height:1.6;margin-bottom:var(--space-3);}
+.toast-container{position:fixed;top:var(--space-4);right:var(--space-4);z-index:9999;display:flex;flex-direction:column;gap:var(--space-2);}
+.toast{min-width:260px;padding:var(--space-3) var(--space-4);background:var(--bg-base);border-radius:var(--radius-md);box-shadow:var(--shadow-modal);border-left:4px solid var(--accent-success);font-size:14px;font-weight:600;animation:toastIn 300ms ease-out;}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:1023px){.sidebar,.app-header{display:none;}.mobile-header,.bottom-tab-bar{display:flex;}.app-main{margin-left:0;padding-top:var(--header-h);padding-bottom:var(--bottom-bar-h);}.page-content{padding:var(--space-4);}.communities-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.communities-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a href="home.html" class="sidebar-logo"><div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0"/><path d="M3 19c0-4 9-4 9-4s9 0 9 4"/><path d="M17 8c1.5-1 3.5-.5 4 1.5s-1 3.5-3 3"/><path d="M7 8c-1.5-1-3.5-.5-4 1.5s1 3.5 3 3"/></svg></div><span class="sidebar-logo-text">StrongApe</span></a>
+    <nav class="sidebar-nav">
+      <a href="home.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home</a>
+      <a href="nearby.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Find Nearby Apes</a>
+      <a href="communities.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Communities</a>
+      <a href="chat.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Chat <span class="nav-badge">3</span></a>
+      <a href="profile.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile</a>
+    </nav>
+    <div class="sidebar-footer"><a href="profile.html" class="sidebar-user"><div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div><div style="flex:1;min-width:0;"><div class="sidebar-user-name">Ankit Sharma</div><div class="sidebar-user-level">Level 24 · 4,200 XP</div></div><span class="xp-chip">Lv.24</span></a></div>
+  </aside>
+  <header class="app-header"><div class="header-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search communities..."/></div><div class="header-right"><div class="notif-wrap"><button class="btn-icon btn-ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><span class="notif-count">5</span></div><a href="profile.html"><div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div></a></div></header>
+  <header class="mobile-header"><span class="mobile-logo">StrongApe</span><div style="margin-left:auto;display:flex;gap:8px;align-items:center;"><div class="notif-wrap"><button class="btn-icon btn-ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button><span class="notif-count">5</span></div><a href="profile.html"><div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div></a></div></header>
+
+  <main class="app-main">
+    <div class="page-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);">
+        <div><h1 style="font-size:22px;font-weight:700;color:var(--accent-navy);">Communities</h1><p style="color:var(--text-muted);font-size:14px;margin-top:4px;">Find your fitness tribe</p></div>
+        <button class="btn btn-primary" onclick="showToast('Create community feature coming soon!')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Community</button>
+      </div>
+
+      <!-- My Communities -->
+      <div style="margin-bottom:var(--space-6);">
+        <h3 style="font-size:16px;font-weight:700;color:var(--accent-navy);margin-bottom:var(--space-3);">My Communities</h3>
+        <div style="display:flex;gap:var(--space-3);overflow-x:auto;padding-bottom:4px;">
+          <button class="my-pill" onclick="openDetail('Bangalore Lifters','linear-gradient(135deg,#0A1628,#0066FF)','2,840 members · Strength')"><div style="width:28px;height:28px;border-radius:6px;background:var(--gradient-hero);flex-shrink:0;"></div>Bangalore Lifters</button>
+          <button class="my-pill" onclick="openDetail('6AM Warriors','linear-gradient(135deg,#1E3A5F,#A8C8F0)','1,420 members · Early Birds')"><div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#A8C8F0,#0066FF);flex-shrink:0;"></div>6AM Warriors</button>
+          <button class="my-pill" onclick="openDetail('Nutrition & Gains','linear-gradient(135deg,#0066FF,#A8C8F0)','4,560 members · Nutrition')"><div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#16A34A,#A8C8F0);flex-shrink:0;"></div>Nutrition & Gains</button>
+        </div>
+      </div>
+
+      <!-- Category Filters -->
+      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-5);">
+        <div class="filter-chip active" onclick="toggleFilter(this)">All</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Strength</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Running</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Yoga</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Boxing</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Cycling</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Nutrition</div>
+      </div>
+
+      <!-- Grid -->
+      <div class="communities-grid">
+        <div class="community-card" onclick="openDetail('Bangalore Lifters','linear-gradient(135deg,#0A1628,#0066FF)','2,840 members · Strength')">
+          <div class="cc-cover" style="background:var(--gradient-hero);"></div>
+          <div class="cc-info">
+            <div class="cc-name">Bangalore Lifters</div>
+            <div class="cc-desc">Strength training & powerlifting community for serious gym-goers in Bangalore.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>2,840</span><span class="badge badge-primary">Joined</span></div>
+            <button class="btn btn-secondary btn-sm w-full" style="margin-top:12px;">View Community</button>
+          </div>
+        </div>
+        <div class="community-card" onclick="openDetail('6AM Warriors','linear-gradient(135deg,#1E3A5F,#A8C8F0)','1,420 members · Early Birds')">
+          <div class="cc-cover" style="background:linear-gradient(135deg,#1E3A5F,#A8C8F0);"></div>
+          <div class="cc-info">
+            <div class="cc-name">6AM Warriors</div>
+            <div class="cc-desc">Early risers who believe the morning session sets the tone for the whole day.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>1,420</span><span class="badge badge-primary">Joined</span></div>
+            <button class="btn btn-secondary btn-sm w-full" style="margin-top:12px;">View Community</button>
+          </div>
+        </div>
+        <div class="community-card" onclick="openDetail('Marathon Runners Pune','linear-gradient(135deg,#0A1628,#16A34A)','3,100 members · Running')">
+          <div class="cc-cover" style="background:linear-gradient(135deg,#0A1628,#16A34A);"></div>
+          <div class="cc-info">
+            <div class="cc-name">Marathon Runners Pune</div>
+            <div class="cc-desc">Training plans, tips, and group runs for Pune's distance running community.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>3,100</span><span class="badge badge-success">Running</span></div>
+            <button class="btn btn-primary btn-sm w-full" style="margin-top:12px;" onclick="event.stopPropagation();joinComm(this)">Join</button>
+          </div>
+        </div>
+        <div class="community-card" onclick="openDetail('Yoga & Mindfulness','linear-gradient(135deg,#A8C8F0,#1E3A5F)','980 members · Yoga')">
+          <div class="cc-cover" style="background:linear-gradient(135deg,#A8C8F0,#1E3A5F);"></div>
+          <div class="cc-info">
+            <div class="cc-name">Yoga & Mindfulness</div>
+            <div class="cc-desc">Balance strength with flexibility. Recovery, yoga flows, and meditation practices.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>980</span><span class="badge badge-ice">Yoga</span></div>
+            <button class="btn btn-primary btn-sm w-full" style="margin-top:12px;" onclick="event.stopPropagation();joinComm(this)">Join</button>
+          </div>
+        </div>
+        <div class="community-card" onclick="openDetail('Nutrition & Gains','linear-gradient(135deg,#0066FF,#A8C8F0)','4,560 members · Nutrition')">
+          <div class="cc-cover" style="background:linear-gradient(135deg,#0066FF,#A8C8F0);"></div>
+          <div class="cc-info">
+            <div class="cc-name">Nutrition & Gains</div>
+            <div class="cc-desc">Meal plans, macros, supplement talk, and diet advice for maximum muscle.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>4,560</span><span class="badge badge-primary">Joined</span></div>
+            <button class="btn btn-secondary btn-sm w-full" style="margin-top:12px;">View Community</button>
+          </div>
+        </div>
+        <div class="community-card" onclick="openDetail('Boxing & MMA','linear-gradient(135deg,#0A1628,#DC2626)','1,780 members · Boxing')">
+          <div class="cc-cover" style="background:linear-gradient(135deg,#0A1628,#DC2626);"></div>
+          <div class="cc-info">
+            <div class="cc-name">Boxing & MMA</div>
+            <div class="cc-desc">Combat sports enthusiasts — sparring tips, bag work routines, and fight prep.</div>
+            <div class="cc-footer"><span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>1,780</span><span class="badge badge-error">Boxing</span></div>
+            <button class="btn btn-primary btn-sm w-full" style="margin-top:12px;" onclick="event.stopPropagation();joinComm(this)">Join</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-tab-bar">
+    <a href="home.html" class="bottom-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</a>
+    <a href="nearby.html" class="bottom-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Nearby</a>
+    <a href="communities.html" class="bottom-tab active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Groups</a>
+    <div class="bottom-tab-wrap"><a href="chat.html" class="bottom-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</a><span class="tab-badge">3</span></div>
+    <a href="profile.html" class="bottom-tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
+  </nav>
+</div>
+
+<!-- COMMUNITY DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="community-detail" id="communityDetail">
+  <div class="d-cover" id="dCover" style="background:var(--gradient-hero);">
+    <button class="d-close" onclick="closeDetail()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><line x1="5" y1="5" x2="19" y2="19"/></svg></button>
+  </div>
+  <div class="d-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div><h2 id="dName" style="font-size:20px;font-weight:700;color:var(--accent-navy);"></h2><p id="dMeta" style="color:var(--text-muted);font-size:13px;margin-top:4px;"></p></div>
+      <button class="btn btn-ghost btn-sm" style="color:var(--accent-error);">Leave</button>
+    </div>
+  </div>
+  <div class="d-tabs">
+    <div class="d-tab active" onclick="switchDTab(this,'dtFeed')">Feed</div>
+    <div class="d-tab" onclick="switchDTab(this,'dtMembers')">Members</div>
+    <div class="d-tab" onclick="switchDTab(this,'dtEvents')">Events</div>
+    <div class="d-tab" onclick="switchDTab(this,'dtAbout')">About</div>
+  </div>
+  <div class="d-body">
+    <div id="dtFeed">
+      <div class="feed-post"><div class="post-header"><div class="avatar avatar-sm avatar-gradient-2">R</div><div><div style="font-weight:600;font-size:14px;">Rahul Mehta</div><div style="font-size:12px;color:var(--text-muted);">1 hour ago</div></div></div><p class="post-content">PR day! Hit 140kg bench today. Bangalore Lifters represent!</p></div>
+      <div class="feed-post"><div class="post-header"><div class="avatar avatar-sm avatar-gradient-3">S</div><div><div style="font-weight:600;font-size:14px;">Sneha Rao</div><div style="font-size:12px;color:var(--text-muted);">3 hours ago</div></div></div><p class="post-content">Great session this morning! Who's in for Saturday at 7AM?</p></div>
+    </div>
+    <div id="dtMembers" style="display:none;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;"><div><div class="avatar avatar-md avatar-gradient-2" style="margin:0 auto 8px;">R</div><div style="font-size:12px;font-weight:600;">Rahul M.</div><div style="font-size:11px;color:var(--text-muted);">Admin</div></div><div><div class="avatar avatar-md avatar-gradient-3" style="margin:0 auto 8px;">S</div><div style="font-size:12px;font-weight:600;">Sneha R.</div></div><div><div class="avatar avatar-md avatar-gradient-4" style="margin:0 auto 8px;">K</div><div style="font-size:12px;font-weight:600;">Kiran D.</div></div><div><div class="avatar avatar-md avatar-gradient-1" style="margin:0 auto 8px;">A</div><div style="font-size:12px;font-weight:600;">You</div></div></div></div>
+    <div id="dtEvents" style="display:none;"><div style="background:var(--bg-base);border:1px solid var(--bg-border);border-radius:12px;padding:16px;"><div style="font-size:14px;font-weight:700;color:var(--accent-navy);margin-bottom:4px;">Weekend Strength Session</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Saturday, June 14 · 7:00 AM · Anytime Fitness</div><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;color:var(--text-muted);">24 attending</span><button class="btn btn-primary btn-sm" onclick="showToast('RSVP confirmed!')">RSVP</button></div></div></div>
+    <div id="dtAbout" style="display:none;"><p style="color:var(--text-secondary);line-height:1.7;">A strength training community for serious gym-goers. We share workouts, tips, and motivation. Whether you're a beginner or competitive powerlifter, you're welcome here.</p><div style="margin-top:16px;"><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Founded</div><div>March 2024</div></div></div>
+  </div>
+</div>
+
+<script>
+function openDetail(name,bg,meta){ document.getElementById('dName').textContent=name; document.getElementById('dMeta').textContent=meta; document.getElementById('dCover').style.background=bg; document.getElementById('communityDetail').classList.add('open'); document.getElementById('detailOverlay').classList.add('open'); }
+function closeDetail(){ document.getElementById('communityDetail').classList.remove('open'); document.getElementById('detailOverlay').classList.remove('open'); }
+function switchDTab(el,id){ document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); ['dtFeed','dtMembers','dtEvents','dtAbout'].forEach(i=>document.getElementById(i).style.display='none'); document.getElementById(id).style.display='block'; }
+function toggleFilter(el){ el.classList.toggle('active'); }
+function joinComm(btn){ btn.textContent='Joined'; btn.classList.replace('btn-primary','btn-ghost'); btn.style.color='var(--accent-success)'; btn.disabled=true; showToast('Community joined!'); }
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.getElementById('toastContainer').appendChild(t);setTimeout(()=>t.remove(),3500);}
+</script>
+</body>
+</html>

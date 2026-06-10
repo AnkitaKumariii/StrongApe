@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StrongApe App</title>
+<meta name="description" content="StrongApe — your gamified fitness social platform."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+/* ── APP SHELL ──────────────────────────────────── */
+.app-shell {
+  display: flex; min-height: 100vh; background: var(--bg-surface);
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--gradient-navy);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 200;
+  box-shadow: var(--shadow-sidebar);
+  transition: width var(--t-slow);
+}
+.sidebar-logo {
+  padding: var(--space-5) var(--space-6);
+  display: flex; align-items: center; gap: var(--space-3);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  min-height: var(--header-h);
+}
+.sidebar-logo-icon {
+  width: 36px; height: 36px; background: var(--accent-primary);
+  border-radius: var(--radius-md); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.sidebar-logo-text { font-weight: 800; font-size: 18px; color: #fff; white-space: nowrap; }
+.sidebar-nav { flex: 1; padding: var(--space-4) var(--space-3); overflow-y: auto; }
+.nav-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 10px var(--space-3); border-radius: var(--radius-md);
+  color: var(--text-on-dark-muted); cursor: pointer;
+  transition: all var(--t-base); margin-bottom: 2px;
+  font-size: 14px; font-weight: 500; border: none; background: none;
+  width: 100%; text-align: left; white-space: nowrap;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-item.active {
+  background: rgba(0,102,255,0.2); color: #fff; font-weight: 600;
+  border-left-color: var(--accent-primary);
+}
+.nav-item svg { flex-shrink: 0; }
+.nav-item .nav-badge {
+  margin-left: auto; background: var(--accent-error); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 1px 6px;
+  border-radius: var(--radius-full); min-width: 18px; text-align: center;
+}
+.sidebar-footer {
+  padding: var(--space-4) var(--space-3);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-user {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3); border-radius: var(--radius-md);
+  cursor: pointer; transition: background var(--t-base);
+}
+.sidebar-user:hover { background: rgba(255,255,255,0.08); }
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: #fff; truncate: true; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user-level { font-size: 11px; color: var(--text-on-dark-muted); }
+.xp-chip {
+  background: rgba(0,102,255,0.3); border: 1px solid rgba(0,102,255,0.4);
+  color: var(--accent-ice); font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: var(--radius-full);
+}
+
+/* HEADER */
+.app-header {
+  position: fixed; top: 0; right: 0; left: var(--sidebar-w); z-index: 100;
+  height: var(--header-h); background: var(--bg-base);
+  border-bottom: 1px solid var(--bg-border);
+  display: flex; align-items: center; padding: 0 var(--space-6);
+  gap: var(--space-4);
+  transition: left var(--t-slow);
+}
+.header-search {
+  flex: 1; max-width: 480px;
+  display: flex; align-items: center;
+  background: var(--bg-surface); border: 1px solid var(--bg-border);
+  border-radius: var(--radius-md); padding: 0 var(--space-3); gap: var(--space-2);
+  height: 38px; transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+.header-search:focus-within { border-color: var(--accent-primary); box-shadow: var(--glow-accent); }
+.header-search input { flex: 1; border: none; background: none; outline: none; font-size: 14px; color: var(--text-primary); }
+.header-search input::placeholder { color: var(--text-muted); }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
+.header-avatar { cursor: pointer; }
+
+/* MAIN CONTENT */
+.app-main {
+  margin-left: var(--sidebar-w);
+  padding-top: var(--header-h);
+  min-height: 100vh;
+  transition: margin-left var(--t-slow);
+}
+.page { display: none; padding: var(--space-6); max-width: 1280px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* BOTTOM TAB BAR (mobile) */
+.bottom-tab-bar {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  height: var(--bottom-bar-h); background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(16px); border-top: 1px solid var(--bg-border);
+  align-items: center; justify-content: space-around;
+}
+.bottom-tab {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 12px; border: none; background: none; cursor: pointer;
+  color: var(--text-muted); font-size: 10px; font-weight: 500;
+  transition: color var(--t-base); flex: 1;
+}
+.bottom-tab.active { color: var(--accent-primary); }
+.bottom-tab svg { transition: color var(--t-base); }
+.tab-badge {
+  position: absolute; top: 6px; right: 8px;
+  background: var(--accent-error); color: #fff;
+  font-size: 9px; font-weight: 700; width: 14px; height: 14px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.bottom-tab-wrap { position: relative; }
+
+/* MOBILE HEADER */
+.mobile-header {
+  display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h); background: var(--bg-base);
+  border-bottom: 1px solid var(--bg-border);
+  align-items: center; padding: 0 var(--space-4); gap: var(--space-3);
+}
+.mobile-logo { font-weight: 800; font-size: 18px; color: var(--accent-navy); }
+
+/* ── HOME PAGE ───────────────────────────────── */
+.home-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: var(--space-6);
+  align-items: start;
+}
+.home-left, .home-right { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: calc(var(--header-h) + 24px); }
+.panel { background: var(--bg-base); border: 1px solid var(--bg-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); }
+.panel-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--bg-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-header h4 { font-weight: 700; font-size: 14px; color: var(--accent-navy); }
+.panel-body { padding: var(--space-4) var(--space-5); }
+.panel-body.no-pad { padding: 0; }
+
+/* Streak Widget */
+.streak-widget {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-5); background: var(--bg-base);
+  border: 1px solid var(--bg-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.streak-flame-icon {
+  width: 52px; height: 52px; border-radius: var(--radius-lg);
+  background: rgba(22,163,74,0.10); border: 1px solid rgba(22,163,74,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-success); flex-shrink: 0;
+}
+.streak-info { flex: 1; }
+.streak-days { font-size: 28px; font-weight: 900; color: var(--accent-navy); line-height: 1; }
+.streak-sub  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* Quick Stats */
+.quick-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+
+/* Post Composer */
+.composer {
+  background: var(--bg-base); border: 1px solid var(--bg-border);
+  border-radius: var(--radius-lg); padding: var(--space-4);
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  box-shadow: var(--shadow-card);
+}
+.composer-input {
+  flex: 1; border: 1.5px solid var(--bg-border); border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4); font-size: 14px; color: var(--text-primary);
+  background: var(--bg-surface); outline: none; resize: none; font-family: inherit;
+  transition: border-color var(--t-base);
+}
+.composer-input:focus { border-color: var(--accent-primary); }
+.composer-input::placeholder { color: var(--text-muted); }
+
+/* Feed */
+.feed { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* Leaderboard panel */
+.scope-toggle { display: flex; gap: 0; border: 1px solid var(--bg-border); border-radius: var(--radius-md); overflow: hidden; }
+.scope-btn {
+  flex: 1; padding: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+  background: none; border: none; color: var(--text-muted); transition: all var(--t-base);
+  text-align: center;
+}
+.scope-btn.active { background: var(--accent-primary); color: #fff; font-weight: 600; }
+
+/* ── NEARBY PAGE ────────────────────────────── */
+.nearby-layout { display: flex; flex-direction: column; gap: var(--space-4); }
+.nearby-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); }
+.nearby-body { display: grid; grid-template-columns: 340px 1fr; gap: var(--space-4); }
+.nearby-list { display: flex; flex-direction: column; gap: var(--space-3); max-height: calc(100vh - 220px); overflow-y: auto; padding-right: var(--space-2); }
+.nearby-filters { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.filter-chip {
+  padding: 6px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 500;
+  background: var(--bg-base); border: 1.5px solid var(--bg-border); color: var(--text-secondary);
+  cursor: pointer; transition: all var(--t-base);
+}
+.filter-chip:hover, .filter-chip.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(0,102,255,0.05); }
+
+/* ── COMMUNITIES PAGE ───────────────────────── */
+.communities-layout { display: flex; flex-direction: column; gap: var(--space-6); }
+.community-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.community-card {
+  background: var(--bg-base); border: 1px solid var(--bg-border);
+  border-radius: var(--radius-xl); overflow: hidden;
+  transition: all var(--t-slow); cursor: pointer;
+}
+.community-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); }
+.community-cover { height: 100px; position: relative; }
+.community-cover-img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.community-info { padding: var(--space-4); }
+.community-name { font-size: 15px; font-weight: 700; color: var(--accent-navy); margin-bottom: 4px; }
+.community-meta { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-3); }
+.member-count { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+.my-communities-scroll { display: flex; gap: var(--space-3); overflow-x: auto; padding-bottom: var(--space-2); }
+.my-community-pill {
+  display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0;
+  padding: var(--space-2) var(--space-4); background: var(--bg-base);
+  border: 1px solid var(--bg-border); border-radius: var(--radius-full);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--t-base);
+}
+.my-community-pill:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+.cat-filter-row { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-4); }
+
+/* Community Detail (slide-in) */
+.community-detail {
+  position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 700px;
+  background: var(--bg-base); z-index: 300; box-shadow: var(--shadow-modal);
+  overflow-y: auto; transition: right var(--t-slow);
+}
+.community-detail.open { right: 0; }
+.detail-cover { height: 180px; position: relative; }
+.detail-cover-img { width: 100%; height: 100%; object-fit: cover; }
+.detail-header { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--bg-border); }
+.detail-close {
+  position: absolute; top: var(--space-4); left: var(--space-4);
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-card); color: var(--text-primary);
+}
+.detail-overlay { position: fixed; inset: 0; background: rgba(10,22,40,0.4); z-index: 299; display: none; }
+.detail-overlay.open { display: block; }
+
+/* ── CHAT PAGE ──────────────────────────────── */
+.chat-layout { display: grid; grid-template-columns: 340px 1fr; gap: 0; min-height: calc(100vh - var(--header-h) - 48px); background: var(--bg-base); border: 1px solid var(--bg-border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); }
+.chat-list-col { border-right: 1px solid var(--bg-border); display: flex; flex-direction: column; }
+.chat-list-header { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--bg-border); }
+.chat-list-header h3 { font-weight: 700; font-size: 16px; color: var(--accent-navy); margin-bottom: var(--space-3); }
+.chat-list-items { overflow-y: auto; flex: 1; }
+.chat-list-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5); cursor: pointer;
+  transition: background var(--t-base); border-bottom: 1px solid var(--bg-border);
+  position: relative;
+}
+.chat-list-item:hover { background: var(--bg-surface); }
+.chat-list-item.active { background: rgba(0,102,255,0.05); }
+.chat-item-info { flex: 1; min-width: 0; }
+.chat-item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.chat-item-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.chat-item-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.chat-item-time { font-size: 11px; color: var(--text-muted); }
+.unread-badge {
+  background: var(--accent-primary); color: #fff;
+  font-size: 10px; font-weight: 700; width: 18px; height: 18px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.chat-thread-col { display: flex; flex-direction: column; height: calc(100vh - var(--header-h) - 48px); }
+.chat-thread-header {
+  padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--bg-border);
+  display: flex; align-items: center; gap: var(--space-3);
+  background: var(--bg-base);
+}
+.chat-thread-messages { flex: 1; overflow-y: auto; padding: var(--space-5); display: flex; flex-direction: column; gap: 2px; background: var(--bg-surface); }
+.date-sep {
+  text-align: center; margin: var(--space-4) 0;
+  font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.chat-input-bar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5); border-top: 1px solid var(--bg-border);
+  background: var(--bg-base);
+}
+.chat-input {
+  flex: 1; border: 1.5px solid var(--bg-border); border-radius: var(--radius-full);
+  padding: 10px var(--space-5); font-size: 14px; outline: none; font-family: inherit;
+  background: var(--bg-surface); transition: border-color var(--t-base);
+}
+.chat-input:focus { border-color: var(--accent-primary); }
+.chat-empty { display: flex; align-items: center; justify-content: center; height: 100%; }
+.typing-indicator { display: flex; align-items: center; gap: 4px; padding: 12px 16px; }
+.typing-dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typingBounce 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+/* ── PROFILE PAGE ───────────────────────────── */
+.profile-layout { max-width: 900px; margin: 0 auto; }
+.profile-cover {
+  height: 200px; border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--gradient-hero); position: relative; overflow: hidden;
+}
+.profile-cover-wave {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(255,255,255,0.15), transparent);
+  height: 60px;
+}
+.profile-hero {
+  background: var(--bg-base); border: 1px solid var(--bg-border);
+  border-top: none; border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: 0 var(--space-8) var(--space-6); margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+.profile-avatar-wrap {
+  margin-top: -56px; margin-bottom: var(--space-4);
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.profile-stats-row {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-1); margin-top: var(--space-5);
+  border-top: 1px solid var(--bg-border); padding-top: var(--space-5);
+}
+.profile-stat { text-align: center; }
+.profile-stat-num { font-size: 22px; font-weight: 800; color: var(--accent-navy); }
+.profile-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.profile-content { background: var(--bg-base); border: 1px solid var(--bg-border); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+.profile-tabs-header { border-bottom: 1px solid var(--bg-border); padding: 0 var(--space-6); }
+.profile-tab-body { padding: var(--space-6); }
+
+/* Achievements Grid */
+.achievements-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+
+/* Stats Charts placeholder */
+.chart-placeholder {
+  background: var(--bg-surface); border: 1px solid var(--bg-border);
+  border-radius: var(--radius-lg); height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 13px;
+}
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 var(--space-4); }
+.chart-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--accent-primary); opacity: 0.7; min-width: 12px; transition: opacity var(--t-base); }
+.chart-bar:hover { opacity: 1; }
+
+/* Settings */
+.settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-6); }
+.settings-nav { display: flex; flex-direction: column; gap: 2px; }
+.settings-nav-item {
+  padding: 10px var(--space-3); border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; transition: all var(--t-base); border: none; background: none; width: 100%; text-align: left;
+}
+.settings-nav-item:hover { background: var(--bg-surface); color: var(--text-primary); }
+.settings-nav-item.active { background: rgba(0,102,255,0.08); color: var(--accent-primary); font-weight: 600; }
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+.settings-field { margin-bottom: var(--space-5); }
+.settings-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2); }
+.settings-field .input { height: 44px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) 0; border-bottom: 1px solid var(--bg-border); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-info h5 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.toggle-info p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.toggle { width: 44px; height: 24px; background: var(--bg-border); border-radius: var(--radius-full); position: relative; cursor: pointer; transition: background var(--t-base); border: none; flex-shrink: 0; }
+.toggle.on { background: var(--accent-primary); }
+.toggle::after { content: ''; width: 18px; height: 18px; background: #fff; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform var(--t-base); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+.toggle.on::after { transform: translateX(20px); }
+.danger-zone { border: 1px solid rgba(220,38,38,0.25); border-radius: var(--radius-lg); padding: var(--space-5); background: rgba(220,38,38,0.03); }
+.danger-zone h4 { color: var(--accent-error); margin-bottom: var(--space-2); }
+
+/* ── CHECK-IN MODAL ─────────────────────────── */
+.checkin-modal .modal { max-width: 500px; }
+.checkin-steps { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); }
+.checkin-step-dot {
+  flex: 1; height: 4px; border-radius: var(--radius-full);
+  background: var(--bg-border); transition: background var(--t-base);
+}
+.checkin-step-dot.done { background: var(--accent-primary); }
+.checkin-step-dot.active { background: var(--accent-ice); }
+.intensity-opts { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3); }
+.intensity-opt {
+  padding: var(--space-4); border: 1.5px solid var(--bg-border); border-radius: var(--radius-md);
+  text-align: center; cursor: pointer; transition: all var(--t-base);
+}
+.intensity-opt:hover { border-color: var(--accent-primary); background: var(--bg-elevated); }
+.intensity-opt.selected { border-color: var(--accent-primary); background: rgba(0,102,255,0.06); }
+.intensity-opt .level { font-size: 20px; font-weight: 800; }
+.intensity-opt .sublabel { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.duration-slider { width: 100%; height: 6px; border-radius: var(--radius-full); appearance: none; background: var(--bg-border); outline: none; }
+.duration-slider::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; box-shadow: 0 2px 8px rgba(0,102,255,0.4); }
+
+/* ── CONFETTI & SUCCESS ─────────────────────── */
+#confettiOverlay { display: none; }
+
+/* ── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 1280px) {
+  .home-grid { grid-template-columns: 240px 1fr 260px; gap: var(--space-4); }
+}
+@media (max-width: 1023px) {
+  .sidebar, .app-header { display: none; }
+  .bottom-tab-bar, .mobile-header { display: flex; }
+  .app-main { margin-left: 0; padding-top: var(--header-h); padding-bottom: var(--bottom-bar-h); }
+  .page { padding: var(--space-4); }
+  .home-grid { grid-template-columns: 1fr; }
+  .home-left, .home-right { position: static; }
+  .home-left { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+  .nearby-body { grid-template-columns: 1fr; }
+  .community-list-grid { grid-template-columns: 1fr 1fr; }
+  .chat-layout { grid-template-columns: 1fr; }
+  .chat-list-col { display: none; }
+  .chat-list-col.mobile-show { display: flex; }
+  .achievements-grid { grid-template-columns: repeat(3, 1fr); }
+  .profile-stats-row { grid-template-columns: repeat(3, 1fr); }
+  .settings-layout { grid-template-columns: 1fr; }
+  .fab { bottom: calc(var(--bottom-bar-h) + 16px); }
+  .chat-thread-col { height: calc(100vh - var(--header-h) - var(--bottom-bar-h) - 32px); }
+}
+@media (max-width: 640px) {
+  .community-list-grid { grid-template-columns: 1fr; }
+  .home-left { grid-template-columns: 1fr; }
+  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
+  .profile-stats-row { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+  .profile-hero { padding: 0 var(--space-4) var(--space-5); }
+  .icon-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- CONFETTI OVERLAY -->
+<div id="confettiOverlay" class="confetti-overlay">
+  <div class="confetti-dots" id="confettiDots"></div>
+  <div class="confetti-content">
+    <div style="font-size:64px;margin-bottom:16px;">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 class="h2" style="color:var(--accent-navy);margin-bottom:8px;">Workout Logged!</h2>
+    <p style="color:var(--text-secondary);margin-bottom:16px;">Day 25 streak · +200 XP earned</p>
+    <div class="streak-badge active" style="display:inline-flex;margin-bottom:20px;">
+      <svg class="streak-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2C13.5 2 15.5 7.5 12 11.5C12 11.5 10.5 8 8 8C8 8 8.5 14 4 17C4 17 4 22 12 22C20 22 20 16 20 16C20 16 16 16 16 13C16 13 19 12 19 9C19 9 16.5 10 15 8.5C15 8.5 15.5 4 13.5 2Z"/></svg>
+      <span class="streak-count">25</span>
+      <span class="streak-label">day streak</span>
+    </div>
+    <br>
+    <button class="btn btn-primary" onclick="closeConfetti()">Keep Going</button>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="app-shell">
+
+  <!-- SIDEBAR (desktop) -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0"/>
+          <path d="M3 19c0-4 9-4 9-4s9 0 9 4"/>
+          <path d="M17 8c1.5-1 3.5-.5 4 1.5s-1 3.5-3 3"/>
+          <path d="M7 8c-1.5-1-3.5-.5-4 1.5s1 3.5 3 3"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">StrongApe</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="navigate('home',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-item" onclick="navigate('nearby',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Find Nearby Apes
+      </button>
+      <button class="nav-item" onclick="navigate('communities',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Communities
+      </button>
+      <button class="nav-item" onclick="navigate('chat',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+        <span class="nav-badge">3</span>
+      </button>
+      <button class="nav-item" onclick="navigate('profile',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" onclick="navigate('profile', document.querySelector('.nav-item:last-child'))">
+        <div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Ankit Sharma</div>
+          <div class="sidebar-user-level">Level 24 · 4,200 XP</div>
+        </div>
+        <span class="xp-chip">Lv.24</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- HEADER (desktop) -->
+  <header class="app-header">
+    <div class="header-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search gym partners, communities..."/>
+    </div>
+    <div class="header-right">
+      <div class="notif-wrap">
+        <button class="btn-icon btn-ghost">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <span class="notif-count">5</span>
+      </div>
+      <div class="header-avatar" onclick="navigate('profile', document.querySelectorAll('.nav-item')[4])">
+        <div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE HEADER -->
+  <header class="mobile-header">
+    <div class="mobile-logo">StrongApe</div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <div class="notif-wrap">
+        <button class="btn-icon btn-ghost">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <span class="notif-count">5</span>
+      </div>
+      <div class="avatar avatar-sm avatar-gradient-1 avatar-ring-gold">A</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="app-main">
+
+    <!-- ── PAGE 1: HOME ───────────────────────── -->
+    <div id="page-home" class="page active">
+      <div class="home-grid">
+        <!-- LEFT PANEL -->
+        <aside class="home-left">
+          <!-- Streak Widget -->
+          <div class="streak-widget">
+            <div class="streak-flame-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2C13.5 2 15.5 7.5 12 11.5C12 11.5 10.5 8 8 8C8 8 8.5 14 4 17C4 17 4 22 12 22C20 22 20 16 20 16C20 16 16 16 16 13C16 13 19 12 19 9C19 9 16.5 10 15 8.5C15 8.5 15.5 4 13.5 2Z"/></svg>
+            </div>
+            <div class="streak-info">
+              <div class="streak-days">24</div>
+              <div class="streak-sub">Day Streak</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openCheckinModal()">Log Today</button>
+          </div>
+
+          <!-- XP Bar -->
+          <div class="panel">
+            <div class="panel-body">
+              <div class="flex items-center gap-3 mb-3" style="margin-bottom:12px;">
+                <div class="xp-level-badge">24</div>
+                <div style="flex:1;">
+                  <div class="xp-label">
+                    <span class="label font-semibold">Level 24</span>
+                    <span class="label text-muted">4,200 / 5,000 XP</span>
+                  </div>
+                  <div class="xp-bar-track" style="margin-top:6px;"><div class="xp-bar-fill" id="xpBarFill" style="width:84%;"></div></div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--text-muted);">800 XP to Level 25</div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="quick-stats">
+            <div class="card-stat"><div class="stat-number">6</div><div class="stat-label">Workouts This Week</div></div>
+            <div class="card-stat"><div class="stat-number">3</div><div class="stat-label">Active Challenges</div></div>
+            <div class="card-stat"><div class="stat-number">28</div><div class="stat-label">Connections</div></div>
+            <div class="card-stat"><div class="stat-number">#14</div><div class="stat-label">Global Rank</div></div>
+          </div>
+        </aside>
+
+        <!-- CENTER: FEED -->
+        <section>
+          <!-- Composer -->
+          <div class="composer" style="margin-bottom:var(--space-4);">
+            <div class="avatar avatar-sm avatar-gradient-1">A</div>
+            <textarea class="composer-input" rows="2" placeholder="What did you accomplish today?"></textarea>
+            <button class="btn btn-primary btn-sm" style="align-self:flex-end;">Post</button>
+          </div>
+
+          <!-- Feed Posts -->
+          <div class="feed">
+            <!-- Post 1 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="avatar avatar-sm avatar-gradient-2 avatar-ring-gold">R</div>
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Rahul Mehta <span class="badge badge-primary" style="margin-left:6px;">Lv.31</span></div>
+                  <div style="font-size:12px;color:var(--text-muted);">2 hours ago</div>
+                </div>
+                <span class="badge badge-success" style="margin-left:auto;">Check-In</span>
+              </div>
+              <p class="post-content">Crushed legs day today. 5 sets of squats at 120kg followed by Romanian deadlifts. The 30-Day Strength Challenge progress is on track — day 18 done!</p>
+              <div class="post-actions">
+                <button class="post-action-btn active" id="likeBtn1" onclick="toggleLike('likeBtn1','likeCount1')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <span id="likeCount1">24</span>
+                </button>
+                <button class="post-action-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  8
+                </button>
+                <button class="post-action-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  Share
+                </button>
+              </div>
+            </div>
+
+            <!-- Post 2 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="avatar avatar-sm avatar-gradient-3 avatar-ring-silver">S</div>
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Sneha Rao <span class="badge badge-ice" style="margin-left:6px;">Lv.22</span></div>
+                  <div style="font-size:12px;color:var(--text-muted);">4 hours ago</div>
+                </div>
+                <span class="badge badge-gold" style="margin-left:auto;">Badge Unlocked</span>
+              </div>
+              <p class="post-content">Just unlocked the "Iron Consistency" badge after 30 days straight! Never thought I'd make it this far but having training partners on here made all the difference.</p>
+              <div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-3);">
+                <div class="achievement-badge" style="padding:12px 20px;flex-direction:row;border-color:rgba(217,119,6,0.3);">
+                  <div class="achievement-icon gold" style="width:48px;height:48px;font-size:22px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <div>
+                    <div class="achievement-name">Iron Consistency</div>
+                    <div class="achievement-desc">30-day streak</div>
+                  </div>
+                </div>
+              </div>
+              <div class="post-actions">
+                <button class="post-action-btn" id="likeBtn2" onclick="toggleLike('likeBtn2','likeCount2')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <span id="likeCount2">41</span>
+                </button>
+                <button class="post-action-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  15
+                </button>
+                <button class="post-action-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  Share
+                </button>
+              </div>
+            </div>
+
+            <!-- Post 3 -->
+            <div class="feed-post">
+              <div class="post-header">
+                <div class="avatar avatar-sm avatar-gradient-4 avatar-ring-bronze">V</div>
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Vikas Kumar <span class="badge badge-muted" style="margin-left:6px;">Lv.18</span></div>
+                  <div style="font-size:12px;color:var(--text-muted);">Yesterday</div>
+                </div>
+              </div>
+              <p class="post-content">Anyone up for a 6AM push session at Anytime Fitness Koramangala tomorrow? Reply or DM me. The more the merrier!</p>
+              <div class="post-actions">
+                <button class="post-action-btn" id="likeBtn3" onclick="toggleLike('likeBtn3','likeCount3')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <span id="likeCount3">12</span>
+                </button>
+                <button class="post-action-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  6
+                </button>
+                <button class="post-action-btn" onclick="navigate('chat', document.querySelectorAll('.nav-item')[3])">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  DM
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT PANEL -->
+        <aside class="home-right">
+          <!-- Challenges Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h4>My Challenges</h4>
+              <div class="tab-pills" style="padding:2px;">
+                <div class="tab-pill active" onclick="switchTab(this, 'ch-active')">Active</div>
+                <div class="tab-pill" onclick="switchTab(this, 'ch-browse')">Browse</div>
+              </div>
+            </div>
+            <div class="panel-body" id="ch-active">
+              <div class="challenge-card" style="margin-bottom:var(--space-3);">
+                <div class="challenge-meta">
+                  <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--accent-navy);">30-Day Push Challenge</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">12 days remaining</div>
+                  </div>
+                  <span class="badge badge-primary">+500 XP</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-fill" style="width:60%;"></div></div>
+                <div class="challenge-progress-label"><span>Day 18</span><span>Day 30</span></div>
+              </div>
+              <div class="challenge-card">
+                <div class="challenge-meta">
+                  <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--accent-navy);">10K Steps Daily</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">5 days remaining</div>
+                  </div>
+                  <span class="badge badge-gold">+200 XP</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-fill green" style="width:83%;"></div></div>
+                <div class="challenge-progress-label"><span>Day 25</span><span>Day 30</span></div>
+              </div>
+            </div>
+            <div class="panel-body" id="ch-browse" style="display:none;">
+              <div class="challenge-card" style="margin-bottom:var(--space-3);">
+                <div class="challenge-meta">
+                  <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--accent-navy);">June Pull Challenge</div>
+                    <div style="font-size:12px;color:var(--text-muted);">1,240 participants</div>
+                  </div>
+                  <span class="badge badge-primary">+300 XP</span>
+                </div>
+                <button class="btn btn-secondary btn-sm w-full" style="margin-top:var(--space-2);" onclick="joinChallenge(this)">Join Challenge</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h4>Leaderboard</h4>
+            </div>
+            <div class="panel-body" style="padding-bottom:var(--space-2);">
+              <div class="scope-toggle" style="margin-bottom:var(--space-4);">
+                <button class="scope-btn active" onclick="switchScope(this)">Global</button>
+                <button class="scope-btn" onclick="switchScope(this)">My Gym</button>
+                <button class="scope-btn" onclick="switchScope(this)">Friends</button>
+              </div>
+              <div class="leaderboard-row">
+                <div class="rank-num rank-1">1</div>
+                <div class="avatar avatar-xs avatar-gradient-2">K</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;" class="truncate">Karan Singh</div></div>
+                <div style="font-size:12px;font-weight:700;color:var(--accent-gold);">9,800</div>
+              </div>
+              <div class="leaderboard-row">
+                <div class="rank-num rank-2">2</div>
+                <div class="avatar avatar-xs avatar-gradient-3">A</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;" class="truncate">Arjun Patel</div></div>
+                <div style="font-size:12px;font-weight:700;color:var(--accent-silver);">8,400</div>
+              </div>
+              <div class="leaderboard-row">
+                <div class="rank-num rank-3">3</div>
+                <div class="avatar avatar-xs avatar-gradient-4">V</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;" class="truncate">Vikas Mehta</div></div>
+                <div style="font-size:12px;font-weight:700;color:var(--accent-bronze);">7,900</div>
+              </div>
+              <div class="leaderboard-row">
+                <div class="rank-num">4</div>
+                <div class="avatar avatar-xs avatar-gradient-1">R</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;" class="truncate">Rohit Kumar</div></div>
+                <div style="font-size:12px;font-weight:600;color:var(--text-muted);">6,200</div>
+              </div>
+              <div class="divider" style="margin:var(--space-2) 0;"></div>
+              <div class="leaderboard-row me">
+                <div class="rank-num" style="color:var(--accent-primary);">14</div>
+                <div class="avatar avatar-xs avatar-gradient-1">A</div>
+                <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--accent-primary);" class="truncate">You</div></div>
+                <div style="font-size:12px;font-weight:700;color:var(--accent-primary);">4,200</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- FAB -->
+      <button class="fab" onclick="openCheckinModal()" title="Log Workout">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- ── PAGE 2: NEARBY ──────────────────────── -->
+    <div id="page-nearby" class="page">
+      <div class="nearby-layout">
+        <div class="nearby-header">
+          <div>
+            <h2 class="h3" style="color:var(--accent-navy);">Find Nearby Apes</h2>
+            <p style="color:var(--text-muted);font-size:14px;margin-top:4px;">Discover gym partners within your area</p>
+          </div>
+          <div style="display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap;">
+            <div class="tab-pills">
+              <div class="tab-pill active" id="mapTabBtn" onclick="switchNearbyView('map')">Map View</div>
+              <div class="tab-pill" id="listTabBtn" onclick="switchNearbyView('list')">List View</div>
+            </div>
+            <div class="header-search" style="max-width:220px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search gym or name..."/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="nearby-filters">
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip">Strength</div>
+          <div class="filter-chip">Cardio</div>
+          <div class="filter-chip">6AM Sessions</div>
+          <div class="filter-chip">Beginner</div>
+          <div class="filter-chip">Intermediate</div>
+          <div class="filter-chip">Advanced</div>
+          <div class="filter-chip">Within 2km</div>
+        </div>
+
+        <!-- Body: Map + List -->
+        <div class="nearby-body">
+          <!-- LIST -->
+          <div class="nearby-list" id="nearbyList">
+            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:var(--space-2);">12 Apes Found Nearby</div>
+
+            <div class="user-card" onclick="showToast('Connect request sent to Rahul!','success')">
+              <div class="user-card-header">
+                <div class="avatar avatar-md avatar-gradient-2 avatar-ring-gold">R</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:700;color:var(--accent-navy);">Rahul Mehta</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Level 31 · Intermediate</div>
+                </div>
+                <span class="distance-badge">0.8 km</span>
+              </div>
+              <div class="user-card-tags">
+                <span class="badge badge-primary">Strength</span>
+                <span class="badge badge-ice">6AM</span>
+                <span class="badge badge-muted">Anytime Fitness</span>
+              </div>
+              <button class="btn btn-primary btn-sm w-full">Connect</button>
+            </div>
+
+            <div class="user-card" onclick="showToast('Connect request sent to Priya!','success')">
+              <div class="user-card-header">
+                <div class="avatar avatar-md avatar-gradient-3 avatar-ring-silver">P</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:700;color:var(--accent-navy);">Priya Nair</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Level 19 · Beginner</div>
+                </div>
+                <span class="distance-badge">1.2 km</span>
+              </div>
+              <div class="user-card-tags">
+                <span class="badge badge-primary">Yoga</span>
+                <span class="badge badge-ice">7AM</span>
+                <span class="badge badge-muted">Gold's Gym</span>
+              </div>
+              <button class="btn btn-primary btn-sm w-full">Connect</button>
+            </div>
+
+            <div class="user-card">
+              <div class="user-card-header">
+                <div class="avatar avatar-md avatar-gradient-4 avatar-ring-bronze">K</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:700;color:var(--accent-navy);">Kiran Desai</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Level 26 · Advanced</div>
+                </div>
+                <span class="distance-badge">1.8 km</span>
+              </div>
+              <div class="user-card-tags">
+                <span class="badge badge-primary">Strength</span>
+                <span class="badge badge-primary">Cardio</span>
+                <span class="badge badge-ice">5:30AM</span>
+              </div>
+              <button class="btn btn-secondary btn-sm w-full">View Profile</button>
+            </div>
+
+            <div class="user-card">
+              <div class="user-card-header">
+                <div class="avatar avatar-md avatar-gradient-1 avatar-ring-diamond">A</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:700;color:var(--accent-navy);">Arjun Shah</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Level 38 · Advanced</div>
+                </div>
+                <span class="distance-badge">2.4 km</span>
+              </div>
+              <div class="user-card-tags">
+                <span class="badge badge-primary">Powerlifting</span>
+                <span class="badge badge-ice">6–8AM</span>
+              </div>
+              <button class="btn btn-primary btn-sm w-full">Connect</button>
+            </div>
+
+            <div class="user-card">
+              <div class="user-card-header">
+                <div class="avatar avatar-md avatar-gradient-2">M</div>
+                <div style="flex:1;">
+                  <div style="font-size:15px;font-weight:700;color:var(--accent-navy);">Meera Pillai</div>
+                  <div style="font-size:12px;color:var(--text-muted);">Level 14 · Beginner</div>
+                </div>
+                <span class="distance-badge">3.1 km</span>
+              </div>
+              <div class="user-card-tags">
+                <span class="badge badge-primary">Cardio</span>
+                <span class="badge badge-ice">Evenings</span>
+              </div>
+              <button class="btn btn-primary btn-sm w-full">Connect</button>
+            </div>
+          </div>
+
+          <!-- MAP -->
+          <div id="nearbyMap" style="display:block;">
+            <div class="map-container" style="height:580px;border-radius:var(--radius-xl);">
+              <div class="map-grid"></div>
+              <!-- Pin markers -->
+              <div style="position:absolute;top:35%;left:48%;transform:translate(-50%,-50%);">
+                <div style="position:relative;">
+                  <div class="avatar avatar-sm avatar-gradient-2" style="border:3px solid white;box-shadow:0 2px 12px rgba(0,102,255,0.3);">R</div>
+                  <div class="card-glass" style="position:absolute;top:-90px;left:50%;transform:translateX(-50%);padding:8px 12px;width:160px;text-align:center;display:none;" id="popup1">
+                    <div style="font-size:12px;font-weight:700;color:var(--accent-navy);">Rahul Mehta</div>
+                    <div style="font-size:11px;color:var(--text-muted);">0.8 km · Strength</div>
+                    <button class="btn btn-primary btn-sm" style="margin-top:6px;width:100%;" onclick="showToast('Request sent!','success')">Connect</button>
+                  </div>
+                </div>
+              </div>
+              <div style="position:absolute;top:55%;left:62%;transform:translate(-50%,-50%);">
+                <div class="avatar avatar-sm avatar-gradient-3" style="border:3px solid white;box-shadow:0 2px 12px rgba(0,102,255,0.3);">P</div>
+              </div>
+              <div style="position:absolute;top:40%;left:30%;transform:translate(-50%,-50%);">
+                <div class="avatar avatar-sm avatar-gradient-4" style="border:3px solid white;box-shadow:0 2px 12px rgba(0,102,255,0.3);">K</div>
+              </div>
+              <div style="position:absolute;top:65%;left:40%;transform:translate(-50%,-50%);">
+                <div class="avatar avatar-sm avatar-gradient-1" style="border:3px solid white;box-shadow:0 2px 12px rgba(0,102,255,0.3);">A</div>
+              </div>
+              <!-- My Location -->
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+                <div style="width:20px;height:20px;background:var(--accent-primary);border-radius:50%;border:3px solid white;box-shadow:var(--glow-accent);"></div>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;background:rgba(0,102,255,0.12);border-radius:50%;z-index:-1;animation:locationPulse 2s ease-out infinite;"></div>
+              </div>
+              <!-- Controls -->
+              <div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="showToast('Location centered','info')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+                  My Location
+                </button>
+              </div>
+              <!-- Radius -->
+              <div style="position:absolute;bottom:16px;left:16px;right:16px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);padding:12px 16px;border-radius:var(--radius-md);border:1px solid var(--bg-border);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">Search Radius</span>
+                  <span style="font-size:12px;font-weight:700;color:var(--accent-primary);" id="radiusVal">5 km</span>
+                </div>
+                <input type="range" class="duration-slider" min="1" max="50" value="5" oninput="document.getElementById('radiusVal').textContent=this.value+' km'">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE 3: COMMUNITIES ─────────────────── -->
+    <div id="page-communities" class="page">
+      <div class="communities-layout">
+        <div>
+          <h2 class="h3" style="color:var(--accent-navy);">Communities</h2>
+          <p style="color:var(--text-muted);font-size:14px;margin-top:4px;">Find your fitness tribe</p>
+        </div>
+
+        <!-- My Communities -->
+        <div>
+          <div class="flex items-center justify-between" style="margin-bottom:var(--space-3);">
+            <h4 class="h4">My Communities</h4>
+          </div>
+          <div class="my-communities-scroll">
+            <div class="my-community-pill" onclick="openCommunity('Bangalore Lifters')">
+              <div style="width:28px;height:28px;border-radius:6px;background:var(--gradient-hero);"></div>
+              Bangalore Lifters
+            </div>
+            <div class="my-community-pill" onclick="openCommunity('6AM Warriors')">
+              <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#A8C8F0,#0066FF);"></div>
+              6AM Warriors
+            </div>
+            <div class="my-community-pill" onclick="openCommunity('Nutrition & Gains')">
+              <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#16A34A,#A8C8F0);"></div>
+              Nutrition & Gains
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div>
+          <div class="cat-filter-row">
+            <div class="filter-chip active">All</div>
+            <div class="filter-chip">Strength</div>
+            <div class="filter-chip">Running</div>
+            <div class="filter-chip">Yoga</div>
+            <div class="filter-chip">Boxing</div>
+            <div class="filter-chip">Cycling</div>
+            <div class="filter-chip">Nutrition</div>
+          </div>
+          <div class="community-list-grid">
+            <div class="community-card" onclick="openCommunity('Bangalore Lifters')">
+              <div class="community-cover" style="background:var(--gradient-hero);"></div>
+              <div class="community-info">
+                <div class="community-name">Bangalore Lifters</div>
+                <div style="font-size:12px;color:var(--text-muted);">Strength training & powerlifting community for serious gym-goers in Bangalore.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 2,840 members</span>
+                  <span class="badge badge-primary">Strength</span>
+                </div>
+                <button class="btn btn-secondary btn-sm w-full" style="margin-top:var(--space-3);">View Community</button>
+              </div>
+            </div>
+            <div class="community-card" onclick="openCommunity('6AM Warriors')">
+              <div class="community-cover" style="background:linear-gradient(135deg,#1E3A5F,#A8C8F0);"></div>
+              <div class="community-info">
+                <div class="community-name">6AM Warriors</div>
+                <div style="font-size:12px;color:var(--text-muted);">Early risers who believe the morning session sets the tone for the whole day.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 1,420 members</span>
+                  <span class="badge badge-ice">Early Birds</span>
+                </div>
+                <button class="btn btn-secondary btn-sm w-full" style="margin-top:var(--space-3);">View Community</button>
+              </div>
+            </div>
+            <div class="community-card" onclick="openCommunity('Marathon Runners Pune')">
+              <div class="community-cover" style="background:linear-gradient(135deg,#0A1628,#16A34A);"></div>
+              <div class="community-info">
+                <div class="community-name">Marathon Runners Pune</div>
+                <div style="font-size:12px;color:var(--text-muted);">Training plans, tips, and group runs for Pune's distance running community.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 3,100 members</span>
+                  <span class="badge badge-success">Running</span>
+                </div>
+                <button class="btn btn-primary btn-sm w-full" style="margin-top:var(--space-3);" onclick="event.stopPropagation();joinCommunity(this)">Join</button>
+              </div>
+            </div>
+            <div class="community-card" onclick="openCommunity('Yoga & Mindfulness')">
+              <div class="community-cover" style="background:linear-gradient(135deg,#A8C8F0,#1E3A5F);"></div>
+              <div class="community-info">
+                <div class="community-name">Yoga & Mindfulness</div>
+                <div style="font-size:12px;color:var(--text-muted);">Balance strength with flexibility. Recovery, yoga flows, and meditation practices.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 980 members</span>
+                  <span class="badge badge-ice">Yoga</span>
+                </div>
+                <button class="btn btn-primary btn-sm w-full" style="margin-top:var(--space-3);" onclick="event.stopPropagation();joinCommunity(this)">Join</button>
+              </div>
+            </div>
+            <div class="community-card" onclick="openCommunity('Nutrition & Gains')">
+              <div class="community-cover" style="background:linear-gradient(135deg,#0066FF,#A8C8F0);"></div>
+              <div class="community-info">
+                <div class="community-name">Nutrition & Gains</div>
+                <div style="font-size:12px;color:var(--text-muted);">Meal plans, macros, supplement talk, and diet advice for maximum muscle.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 4,560 members</span>
+                  <span class="badge badge-gold">Nutrition</span>
+                </div>
+                <button class="btn btn-secondary btn-sm w-full" style="margin-top:var(--space-3);">View Community</button>
+              </div>
+            </div>
+            <div class="community-card" onclick="openCommunity('Boxing & MMA')">
+              <div class="community-cover" style="background:linear-gradient(135deg,#0A1628,#DC2626);"></div>
+              <div class="community-info">
+                <div class="community-name">Boxing & MMA</div>
+                <div style="font-size:12px;color:var(--text-muted);">Combat sports enthusiasts — sparring tips, bag work routines, and fight prep.</div>
+                <div class="community-meta">
+                  <span class="member-count"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 1,780 members</span>
+                  <span class="badge badge-error">Boxing</span>
+                </div>
+                <button class="btn btn-primary btn-sm w-full" style="margin-top:var(--space-3);" onclick="event.stopPropagation();joinCommunity(this)">Join</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Detail Panel -->
+      <div class="detail-overlay" id="detailOverlay" onclick="closeCommunity()"></div>
+      <div class="community-detail" id="communityDetail">
+        <div class="detail-cover" style="background:var(--gradient-hero);">
+          <button class="detail-close" onclick="closeCommunity()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><line x1="5" y1="5" x2="19" y2="19"/></svg>
+          </button>
+        </div>
+        <div class="detail-header">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="h3" style="color:var(--accent-navy);" id="detailName">Bangalore Lifters</h2>
+              <p style="color:var(--text-muted);font-size:13px;margin-top:4px;"><span class="badge badge-primary">Strength</span> &nbsp; 2,840 members</p>
+            </div>
+            <button class="btn btn-secondary">Leave Community</button>
+          </div>
+        </div>
+        <div class="tabs" style="padding:0 var(--space-6);">
+          <div class="tab active" onclick="switchDetailTab(this,'dtFeed')">Feed</div>
+          <div class="tab" onclick="switchDetailTab(this,'dtMembers')">Members</div>
+          <div class="tab" onclick="switchDetailTab(this,'dtEvents')">Events</div>
+          <div class="tab" onclick="switchDetailTab(this,'dtAbout')">About</div>
+        </div>
+        <div style="padding:var(--space-5) var(--space-6);">
+          <div id="dtFeed">
+            <div class="feed-post" style="margin-bottom:var(--space-4);">
+              <div class="post-header">
+                <div class="avatar avatar-sm avatar-gradient-2">R</div>
+                <div><div style="font-weight:600;font-size:14px;">Rahul Mehta</div><div style="font-size:12px;color:var(--text-muted);">1 hour ago</div></div>
+              </div>
+              <p class="post-content">PR day! Hit 140kg bench today. Bangalore Lifters represent!</p>
+              <div class="post-actions">
+                <button class="post-action-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg> 18</button>
+              </div>
+            </div>
+          </div>
+          <div id="dtMembers" style="display:none;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3);text-align:center;">
+              <div><div class="avatar avatar-md avatar-gradient-2" style="margin:0 auto 8px;">R</div><div style="font-size:12px;font-weight:600;">Rahul M.</div><div style="font-size:11px;color:var(--text-muted);">Admin</div></div>
+              <div><div class="avatar avatar-md avatar-gradient-3" style="margin:0 auto 8px;">S</div><div style="font-size:12px;font-weight:600;">Sneha R.</div></div>
+              <div><div class="avatar avatar-md avatar-gradient-4" style="margin:0 auto 8px;">K</div><div style="font-size:12px;font-weight:600;">Kiran D.</div></div>
+              <div><div class="avatar avatar-md avatar-gradient-1" style="margin:0 auto 8px;">A</div><div style="font-size:12px;font-weight:600;">Arjun S.</div></div>
+            </div>
+          </div>
+          <div id="dtEvents" style="display:none;">
+            <div class="challenge-card">
+              <div style="font-size:14px;font-weight:700;color:var(--accent-navy);margin-bottom:4px;">Weekend Strength Session</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:var(--space-3);">Saturday, June 14 · 7:00 AM · Anytime Fitness Koramangala</div>
+              <div class="flex items-center justify-between">
+                <span style="font-size:12px;color:var(--text-muted);">24 attending</span>
+                <button class="btn btn-primary btn-sm" onclick="showToast('RSVP confirmed!','success')">RSVP</button>
+              </div>
+            </div>
+          </div>
+          <div id="dtAbout" style="display:none;">
+            <p style="color:var(--text-secondary);line-height:1.7;">Bangalore Lifters is a strength training community for serious gym-goers. We share workouts, tips, and motivation. Whether you're a beginner or competitive powerlifter, you're welcome here.</p>
+            <div style="margin-top:var(--space-4);">
+              <div class="label text-muted" style="margin-bottom:var(--space-2);">Founded</div>
+              <div>March 2024</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE 4: CHAT ────────────────────────── -->
+    <div id="page-chat" class="page">
+      <div class="chat-layout">
+        <!-- Chat List -->
+        <div class="chat-list-col">
+          <div class="chat-list-header">
+            <h3>Messages</h3>
+            <div class="tab-pills">
+              <div class="tab-pill active">Direct</div>
+              <div class="tab-pill">Groups</div>
+            </div>
+          </div>
+          <div class="chat-list-items">
+            <div class="chat-list-item active" onclick="openThread('Rahul Mehta','R','avatar-gradient-2')">
+              <div class="avatar avatar-sm avatar-gradient-2">R</div>
+              <div class="chat-item-info">
+                <div class="chat-item-name">Rahul Mehta</div>
+                <div class="chat-item-preview">Ready for tomorrow's session?</div>
+              </div>
+              <div class="chat-item-meta">
+                <span class="chat-item-time">10:24 AM</span>
+                <div class="unread-badge">2</div>
+              </div>
+            </div>
+            <div class="chat-list-item" onclick="openThread('Sneha Rao','S','avatar-gradient-3')">
+              <div class="avatar avatar-sm avatar-gradient-3">S</div>
+              <div class="chat-item-info">
+                <div class="chat-item-name">Sneha Rao</div>
+                <div class="chat-item-preview">That badge felt so good to unlock!</div>
+              </div>
+              <div class="chat-item-meta">
+                <span class="chat-item-time">Yesterday</span>
+              </div>
+            </div>
+            <div class="chat-list-item" onclick="openThread('6AM Warriors','6','avatar-gradient-4')">
+              <div class="avatar avatar-sm avatar-gradient-4" style="border-radius:var(--radius-sm);">6</div>
+              <div class="chat-item-info">
+                <div class="chat-item-name">6AM Warriors <span class="badge badge-ice" style="font-size:9px;">Group</span></div>
+                <div class="chat-item-preview">Kiran: Who's in tomorrow?</div>
+              </div>
+              <div class="chat-item-meta">
+                <span class="chat-item-time">Yesterday</span>
+                <div class="unread-badge">1</div>
+              </div>
+            </div>
+            <div class="chat-list-item" onclick="openThread('Kiran Desai','K','avatar-gradient-1')">
+              <div class="avatar avatar-sm avatar-gradient-1">K</div>
+              <div class="chat-item-info">
+                <div class="chat-item-name">Kiran Desai</div>
+                <div class="chat-item-preview">Check out this routine I found</div>
+              </div>
+              <div class="chat-item-meta">
+                <span class="chat-item-time">Mon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Thread -->
+        <div class="chat-thread-col">
+          <div class="chat-thread-header">
+            <div class="avatar avatar-sm avatar-gradient-2" id="threadAvatar">R</div>
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:700;color:var(--accent-navy);" id="threadName">Rahul Mehta</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="online-dot"></div>
+                <span style="font-size:12px;color:var(--accent-success);">Online</span>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('nearby', document.querySelectorAll('.nav-item')[1])">View Profile</button>
+          </div>
+          <div class="chat-thread-messages" id="chatMessages">
+            <div class="date-sep">Today</div>
+            <div class="chat-bubble-wrap received">
+              <div class="avatar avatar-xs avatar-gradient-2">R</div>
+              <div>
+                <div class="bubble bubble-received">Hey man! Are we still on for the 6AM session tomorrow at Anytime Fitness?</div>
+                <div class="bubble-meta">10:02 AM</div>
+              </div>
+            </div>
+            <div class="chat-bubble-wrap sent">
+              <div>
+                <div class="bubble bubble-sent">Absolutely! I was planning to do heavy squats. You good with that?</div>
+                <div class="bubble-meta">10:15 AM &nbsp;
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ice)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ice)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:-4px;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="chat-bubble-wrap received">
+              <div class="avatar avatar-xs avatar-gradient-2">R</div>
+              <div>
+                <div class="bubble bubble-received">Perfect! I'll do working sets after you. Also, did you see the 30-Day Challenge leaderboard? You're creeping up on me!</div>
+                <div class="bubble-meta">10:20 AM</div>
+              </div>
+            </div>
+            <div class="chat-bubble-wrap received">
+              <div class="avatar avatar-xs avatar-gradient-2">R</div>
+              <div>
+                <div class="bubble bubble-received">Ready for tomorrow's session?</div>
+                <div class="bubble-meta">10:24 AM</div>
+              </div>
+            </div>
+            <div class="typing-indicator">
+              <div class="avatar avatar-xs avatar-gradient-2">R</div>
+              <div class="bubble bubble-received" style="padding:12px 16px;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-bar">
+            <button class="btn-icon btn-ghost">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendMessage()"/>
+            <button class="btn btn-primary btn-sm" onclick="sendMessage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE 5: PROFILE ─────────────────────── -->
+    <div id="page-profile" class="page">
+      <div class="profile-layout">
+        <!-- Hero -->
+        <div class="profile-cover">
+          <div class="profile-cover-wave"></div>
+        </div>
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap">
+            <div class="avatar avatar-xl avatar-gradient-1 avatar-ring-gold">A</div>
+            <div style="display:flex;gap:var(--space-3);">
+              <button class="btn btn-ghost btn-sm" onclick="switchProfileTab(document.querySelectorAll('.profile-tab')[3], 'pSettings')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Settings
+              </button>
+              <button class="btn btn-secondary">Edit Profile</button>
+            </div>
+          </div>
+          <h2 class="h3" style="color:var(--accent-navy);">Ankit Sharma</h2>
+          <p style="color:var(--text-muted);font-size:14px;">@ankitsharma · Bangalore, India</p>
+          <div style="display:flex;gap:var(--space-2);margin-top:var(--space-3);flex-wrap:wrap;">
+            <span class="badge badge-primary">Strength Training</span>
+            <span class="badge badge-ice">Intermediate</span>
+            <span class="badge badge-muted">Anytime Fitness</span>
+          </div>
+          <div class="profile-stats-row">
+            <div class="profile-stat"><div class="profile-stat-num">148</div><div class="profile-stat-label">Workouts</div></div>
+            <div class="profile-stat"><div class="profile-stat-num">24</div><div class="profile-stat-label">Day Streak</div></div>
+            <div class="profile-stat"><div class="profile-stat-num">4,200</div><div class="profile-stat-label">Total XP</div></div>
+            <div class="profile-stat"><div class="profile-stat-num">#14</div><div class="profile-stat-label">Global Rank</div></div>
+            <div class="profile-stat"><div class="profile-stat-num">28</div><div class="profile-stat-label">Connections</div></div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-content">
+          <div class="profile-tabs-header tabs" style="padding-left:var(--space-6);">
+            <div class="tab active profile-tab" onclick="switchProfileTab(this,'pActivity')">Activity</div>
+            <div class="tab profile-tab" onclick="switchProfileTab(this,'pAchievements')">Achievements</div>
+            <div class="tab profile-tab" onclick="switchProfileTab(this,'pStats')">Stats</div>
+            <div class="tab profile-tab" onclick="switchProfileTab(this,'pChallenges')">Challenges</div>
+            <div class="tab profile-tab" onclick="switchProfileTab(this,'pSettings')">Settings</div>
+          </div>
+          <div class="profile-tab-body">
+
+            <!-- Activity Tab -->
+            <div id="pActivity">
+              <div class="feed">
+                <div class="feed-post">
+                  <div class="post-header">
+                    <div class="avatar avatar-sm avatar-gradient-1">A</div>
+                    <div><div style="font-weight:600;font-size:14px;">You <span class="badge badge-success" style="margin-left:6px;">Check-In</span></div><div style="font-size:12px;color:var(--text-muted);">Today, 6:10 AM</div></div>
+                  </div>
+                  <p class="post-content">Legs day — squats, Romanian deadlifts, leg press. Day 24 streak maintained. Feeling strong.</p>
+                </div>
+                <div class="feed-post">
+                  <div class="post-header">
+                    <div class="avatar avatar-sm avatar-gradient-1">A</div>
+                    <div><div style="font-weight:600;font-size:14px;">You <span class="badge badge-gold" style="margin-left:6px;">Badge Unlocked</span></div><div style="font-size:12px;color:var(--text-muted);">Yesterday</div></div>
+                  </div>
+                  <p class="post-content">Unlocked "Iron Will" — 20-day streak achieved!</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Achievements Tab -->
+            <div id="pAchievements" style="display:none;">
+              <div class="achievements-grid">
+                <div class="achievement-badge"><div class="achievement-icon gold"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="achievement-name">Iron Will</div><div class="achievement-desc">20-day streak</div></div>
+                <div class="achievement-badge"><div class="achievement-icon silver"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-silver)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="achievement-name">Social Ape</div><div class="achievement-desc">10 connections</div></div>
+                <div class="achievement-badge"><div class="achievement-icon bronze"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-bronze)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="achievement-name">First Steps</div><div class="achievement-desc">7-day streak</div></div>
+                <div class="achievement-badge"><div class="achievement-icon diamond"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="achievement-name">Punctual</div><div class="achievement-desc">30 early sessions</div></div>
+                <div class="achievement-badge"><div class="achievement-icon locked"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="achievement-name">Century Club</div><div class="achievement-desc">100-day streak</div></div>
+                <div class="achievement-badge"><div class="achievement-icon locked"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="achievement-name">Top 10 Ranked</div><div class="achievement-desc">Global top 10</div></div>
+                <div class="achievement-badge"><div class="achievement-icon locked"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="achievement-name">Community Leader</div><div class="achievement-desc">Start a community</div></div>
+                <div class="achievement-badge"><div class="achievement-icon locked"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="achievement-name">Challenge Master</div><div class="achievement-desc">Complete 10 challenges</div></div>
+              </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="pStats" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+                <div class="card-surface" style="padding:var(--space-4);">
+                  <div style="font-size:13px;font-weight:700;color:var(--accent-navy);margin-bottom:var(--space-3);">Weekly Workouts</div>
+                  <div class="chart-bars">
+                    <div class="chart-bar" style="height:70%;"></div>
+                    <div class="chart-bar" style="height:100%;"></div>
+                    <div class="chart-bar" style="height:85%;"></div>
+                    <div class="chart-bar" style="height:60%;"></div>
+                    <div class="chart-bar" style="height:90%;"></div>
+                    <div class="chart-bar" style="height:100%;"></div>
+                    <div class="chart-bar" style="height:75%;background:var(--accent-ice);opacity:0.5;"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px;padding:0 var(--space-4);"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                </div>
+                <div class="card-surface" style="padding:var(--space-4);">
+                  <div style="font-size:13px;font-weight:700;color:var(--accent-navy);margin-bottom:var(--space-3);">Workout Types</div>
+                  <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+                    <div><div class="flex justify-between" style="font-size:12px;margin-bottom:4px;"><span>Strength</span><span class="font-semibold">65%</span></div><div class="progress-wrap"><div class="progress-fill" style="width:65%;"></div></div></div>
+                    <div><div class="flex justify-between" style="font-size:12px;margin-bottom:4px;"><span>Cardio</span><span class="font-semibold">25%</span></div><div class="progress-wrap"><div class="progress-fill green" style="width:25%;"></div></div></div>
+                    <div><div class="flex justify-between" style="font-size:12px;margin-bottom:4px;"><span>Yoga</span><span class="font-semibold">10%</span></div><div class="progress-wrap"><div class="progress-fill gold" style="width:10%;"></div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Challenges Tab -->
+            <div id="pChallenges" style="display:none;">
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+                <div class="challenge-card">
+                  <div class="challenge-meta"><div><div style="font-size:14px;font-weight:700;color:var(--accent-navy);">30-Day Push Challenge</div><div style="font-size:12px;color:var(--text-muted);">In progress · 12 days left</div></div><span class="badge badge-primary">+500 XP</span></div>
+                  <div class="progress-wrap" style="margin-top:var(--space-3);"><div class="progress-fill" style="width:60%;"></div></div>
+                </div>
+                <div class="challenge-card" style="opacity:0.8;">
+                  <div class="challenge-meta"><div><div style="font-size:14px;font-weight:700;color:var(--accent-navy);">7-Day Cardio Sprint</div><div style="font-size:12px;color:var(--accent-success);">Completed · May 2025</div></div><span class="badge badge-success">+200 XP</span></div>
+                  <div class="progress-wrap" style="margin-top:var(--space-3);"><div class="progress-fill green" style="width:100%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="pSettings" style="display:none;">
+              <div class="settings-layout">
+                <div class="settings-nav">
+                  <button class="settings-nav-item active" onclick="switchSettings(this,'sAccount')">Account</button>
+                  <button class="settings-nav-item" onclick="switchSettings(this,'sProfile')">Profile</button>
+                  <button class="settings-nav-item" onclick="switchSettings(this,'sPrivacy')">Privacy</button>
+                  <button class="settings-nav-item" onclick="switchSettings(this,'sNotifications')">Notifications</button>
+                  <button class="settings-nav-item" onclick="switchSettings(this,'sAppearance')">Appearance</button>
+                  <button class="settings-nav-item" style="color:var(--accent-error);" onclick="switchSettings(this,'sDanger')">Danger Zone</button>
+                </div>
+                <div>
+                  <div class="settings-section active" id="sAccount">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Account</h4>
+                    <div class="settings-field"><label>Display Name</label><input class="input" type="text" value="Ankit Sharma"/></div>
+                    <div class="settings-field"><label>Username</label><input class="input" type="text" value="@ankitsharma"/></div>
+                    <div class="settings-field"><label>Email</label><input class="input" type="email" value="ankit@example.com"/></div>
+                    <div class="settings-field"><label>New Password</label><input class="input" type="password" placeholder="Enter new password"/></div>
+                    <button class="btn btn-primary" onclick="showToast('Account updated successfully!','success')">Save Changes</button>
+                  </div>
+                  <div class="settings-section" id="sProfile">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Profile</h4>
+                    <div class="settings-field"><label>Bio</label><textarea class="input" style="height:80px;padding-top:10px;" placeholder="Tell people about yourself...">Strength training enthusiast. 24-day streak and counting. Based in Bangalore.</textarea></div>
+                    <div class="settings-field"><label>Fitness Level</label><select class="input"><option>Intermediate</option><option>Beginner</option><option>Advanced</option></select></div>
+                    <div class="settings-field"><label>Gym</label><input class="input" type="text" value="Anytime Fitness Koramangala"/></div>
+                    <button class="btn btn-primary" onclick="showToast('Profile updated!','success')">Save Changes</button>
+                  </div>
+                  <div class="settings-section" id="sPrivacy">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Privacy</h4>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Public Profile</h5><p>Anyone can view your profile</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Discoverable</h5><p>Show up in Nearby Apes</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Share Location</h5><p>Allow proximity matching</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                  </div>
+                  <div class="settings-section" id="sNotifications">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Notifications</h4>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Streak Reminders</h5><p>Daily check-in nudges</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="toggle-row"><div class="toggle-info"><h5>New Messages</h5><p>DMs and group chat alerts</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Challenge Updates</h5><p>Progress and deadline alerts</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Community Activity</h5><p>Posts and event notifications</p></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+                  </div>
+                  <div class="settings-section" id="sAppearance">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Appearance</h4>
+                    <div class="toggle-row"><div class="toggle-info"><h5>Light Mode</h5><p>Current default</p></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+                  </div>
+                  <div class="settings-section" id="sDanger">
+                    <h4 class="h4" style="margin-bottom:var(--space-5);">Danger Zone</h4>
+                    <div class="danger-zone">
+                      <h4 class="h4">Delete Account</h4>
+                      <p style="color:var(--text-secondary);font-size:14px;margin:var(--space-3) 0;">This will permanently delete your account, all your data, streaks, XP, and connections. This action cannot be undone.</p>
+                      <button class="btn btn-danger" onclick="showToast('Please confirm in the dialog.','warning')">Delete My Account</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- profile-tab-body -->
+        </div><!-- profile-content -->
+      </div><!-- profile-layout -->
+    </div>
+
+  </main><!-- app-main -->
+
+  <!-- BOTTOM TAB BAR (mobile) -->
+  <nav class="bottom-tab-bar">
+    <button class="bottom-tab active" onclick="navigate('home',this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="bottom-tab" onclick="navigate('nearby',this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Nearby
+    </button>
+    <button class="bottom-tab" onclick="navigate('communities',this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Groups
+    </button>
+    <div class="bottom-tab-wrap">
+      <button class="bottom-tab" onclick="navigate('chat',this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+      <span class="tab-badge">3</span>
+    </div>
+    <button class="bottom-tab" onclick="navigate('profile',this)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+  </nav>
+
+</div><!-- app-shell -->
+
+<!-- ── CHECK-IN MODAL ─────────────────────────── -->
+<div class="modal-overlay checkin-modal" id="checkinModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="h4" id="checkinTitle">Log Your Workout</h3>
+      <button class="btn-icon btn-ghost" onclick="closeCheckinModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="checkin-steps">
+        <div class="checkin-step-dot active" id="cdot1"></div>
+        <div class="checkin-step-dot" id="cdot2"></div>
+        <div class="checkin-step-dot" id="cdot3"></div>
+        <div class="checkin-step-dot" id="cdot4"></div>
+      </div>
+
+      <!-- Step 1: Workout Type -->
+      <div id="ciStep1">
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:var(--space-4);">Select your workout type (multi-select)</p>
+        <div class="icon-grid">
+          <div class="icon-tile selected" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M2 9h4M18 9h4M2 15h4M18 15h4"/></svg>
+            <span>Strength</span>
+          </div>
+          <div class="icon-tile" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            <span>Cardio</span>
+          </div>
+          <div class="icon-tile" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v10M9 12l3-1 3 1M7 19c1.5-1 2.5-2 5-2s3.5 1 5 2"/></svg>
+            <span>Yoga</span>
+          </div>
+          <div class="icon-tile" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            <span>Boxing</span>
+          </div>
+          <div class="icon-tile" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 7V2M12 22v-5M7 12H2M22 12h-5"/></svg>
+            <span>Cycling</span>
+          </div>
+          <div class="icon-tile" onclick="this.classList.toggle('selected')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Custom</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Duration & Intensity -->
+      <div id="ciStep2" style="display:none;">
+        <div style="margin-bottom:var(--space-5);">
+          <div class="flex justify-between" style="margin-bottom:var(--space-3);">
+            <label style="font-size:14px;font-weight:600;color:var(--text-secondary);">Duration</label>
+            <span id="durationLabel" style="font-size:14px;font-weight:700;color:var(--accent-primary);">60 min</span>
+          </div>
+          <input type="range" class="duration-slider" min="15" max="180" value="60" step="15" oninput="document.getElementById('durationLabel').textContent=this.value+' min'">
+          <div class="flex justify-between" style="margin-top:var(--space-2);font-size:11px;color:var(--text-muted);"><span>15 min</span><span>3 hr</span></div>
+        </div>
+        <div>
+          <label style="font-size:14px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:var(--space-3);">Intensity</label>
+          <div class="intensity-opts">
+            <div class="intensity-opt" onclick="selectIntensity(this)"><div class="level" style="color:var(--accent-success);">L</div><div class="sublabel">Light</div></div>
+            <div class="intensity-opt selected" onclick="selectIntensity(this)"><div class="level" style="color:var(--accent-primary);">M</div><div class="sublabel">Moderate</div></div>
+            <div class="intensity-opt" onclick="selectIntensity(this)"><div class="level" style="color:var(--accent-error);">X</div><div class="sublabel">Max Effort</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Notes -->
+      <div id="ciStep3" style="display:none;">
+        <div class="settings-field">
+          <label>Workout Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+          <textarea class="input" id="ciNotes" style="height:100px;padding-top:10px;" placeholder="How was the session? Any PRs? Tag a partner with @..."></textarea>
+          <div style="text-align:right;font-size:11px;color:var(--text-muted);margin-top:4px;" id="noteCount">0/140</div>
+        </div>
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;">
+          <input type="checkbox"> Share to feed
+        </label>
+      </div>
+
+      <!-- Step 4: Confirm -->
+      <div id="ciStep4" style="display:none;">
+        <div class="card-surface" style="padding:var(--space-5);margin-bottom:var(--space-4);">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+            <div><div class="label text-muted">Workout Type</div><div style="font-weight:600;margin-top:4px;">Strength</div></div>
+            <div><div class="label text-muted">Duration</div><div style="font-weight:600;margin-top:4px;">60 min</div></div>
+            <div><div class="label text-muted">Intensity</div><div style="font-weight:600;margin-top:4px;">Moderate</div></div>
+            <div><div class="label text-muted">XP Reward</div><div style="font-weight:600;margin-top:4px;color:var(--accent-primary);">+200 XP</div></div>
+          </div>
+        </div>
+        <div class="streak-badge active" style="display:inline-flex;margin-bottom:var(--space-4);">
+          <svg class="streak-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2C13.5 2 15.5 7.5 12 11.5C12 11.5 10.5 8 8 8C8 8 8.5 14 4 17C4 17 4 22 12 22C20 22 20 16 20 16C20 16 16 16 16 13C16 13 19 12 19 9C19 9 16.5 10 15 8.5C15 8.5 15.5 4 13.5 2Z"/></svg>
+          <span class="streak-count">24 → 25</span>
+          <span class="streak-label">day streak</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="ciBackBtn" style="display:none;" onclick="checkinPrev()">Back</button>
+      <button class="btn btn-primary" id="ciNextBtn" onclick="checkinNext()">Next</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes locationPulse {
+  0% { transform: translate(-50%,-50%) scale(1); opacity: 0.5; }
+  100% { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+}
+</style>
+
+<script>
+// ── NAVIGATION ──────────────────────────────────
+let currentPage = 'home';
+
+function navigate(page, triggerEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+
+  document.getElementById('page-' + page).classList.add('active');
+  currentPage = page;
+
+  if (triggerEl) {
+    triggerEl.classList.add('active');
+    // Sync sidebar + bottom tabs
+    const pageOrder = ['home','nearby','communities','chat','profile'];
+    const idx = pageOrder.indexOf(page);
+    if (idx >= 0) {
+      document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+      document.querySelectorAll('.bottom-tab')[idx]?.classList.add('active');
+    }
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── TABS ─────────────────────────────────────────
+function switchTab(el, targetId) {
+  el.closest('.panel').querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const parent = el.closest('.panel');
+  ['ch-active','ch-browse'].forEach(id => {
+    const el2 = parent.querySelector('#' + id);
+    if (el2) el2.style.display = 'none';
+  });
+  const target = parent.querySelector('#' + targetId);
+  if (target) target.style.display = 'block';
+}
+
+function switchScope(el) {
+  el.closest('.scope-toggle').querySelectorAll('.scope-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function switchNearbyView(view) {
+  document.getElementById('mapTabBtn').classList.toggle('active', view === 'map');
+  document.getElementById('listTabBtn').classList.toggle('active', view === 'list');
+}
+
+function switchDetailTab(el, targetId) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['dtFeed','dtMembers','dtEvents','dtAbout'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById(targetId).style.display = 'block';
+}
+
+function switchProfileTab(el, targetId) {
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['pActivity','pAchievements','pStats','pChallenges','pSettings'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById(targetId).style.display = 'block';
+}
+
+function switchSettings(el, targetId) {
+  document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(targetId).classList.add('active');
+}
+
+// ── COMMUNITIES ──────────────────────────────────
+function openCommunity(name) {
+  document.getElementById('detailName').textContent = name;
+  document.getElementById('communityDetail').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeCommunity() {
+  document.getElementById('communityDetail').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+function joinCommunity(btn) {
+  btn.textContent = 'Joined';
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-ghost');
+  btn.style.color = 'var(--accent-success)';
+  btn.disabled = true;
+  showToast('Community joined!', 'success');
+}
+
+// ── CHAT ─────────────────────────────────────────
+function openThread(name, initial, avatarClass) {
+  document.querySelectorAll('.chat-list-item').forEach(i => i.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('threadName').textContent = name;
+  const av = document.getElementById('threadAvatar');
+  av.textContent = initial;
+  av.className = 'avatar avatar-sm ' + avatarClass;
+}
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const msgs = document.getElementById('chatMessages');
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble-wrap sent';
+  bubble.innerHTML = `<div><div class="bubble bubble-sent">${text}</div><div class="bubble-meta">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  msgs.appendChild(bubble);
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── LIKES ────────────────────────────────────────
+function toggleLike(btnId, countId) {
+  const btn = document.getElementById(btnId);
+  const count = document.getElementById(countId);
+  const active = btn.classList.toggle('active');
+  count.textContent = parseInt(count.textContent) + (active ? 1 : -1);
+}
+
+// ── CHECK-IN MODAL ───────────────────────────────
+let ciStep = 1;
+function openCheckinModal() {
+  ciStep = 1;
+  updateCheckinStep();
+  const m = document.getElementById('checkinModal');
+  m.style.display = 'flex';
+  setTimeout(() => m.classList.add('open'), 10);
+}
+function closeCheckinModal() {
+  const m = document.getElementById('checkinModal');
+  m.classList.remove('open');
+  setTimeout(() => { m.style.display = 'none'; ciStep = 1; updateCheckinStep(); }, 250);
+}
+function updateCheckinStep() {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('ciStep'+i).style.display = i === ciStep ? 'block' : 'none';
+    const dot = document.getElementById('cdot'+i);
+    dot.classList.remove('done','active');
+    if (i < ciStep) dot.classList.add('done');
+    else if (i === ciStep) dot.classList.add('active');
+  });
+  document.getElementById('ciBackBtn').style.display = ciStep > 1 ? 'inline-flex' : 'none';
+  document.getElementById('ciNextBtn').textContent = ciStep === 4 ? 'Log Workout' : 'Next';
+  document.getElementById('checkinTitle').textContent = ['Log Your Workout','Duration & Intensity','Notes & Media','Confirm'][ciStep-1];
+}
+function checkinNext() {
+  if (ciStep < 4) { ciStep++; updateCheckinStep(); }
+  else { closeCheckinModal(); showConfetti(); }
+}
+function checkinPrev() {
+  if (ciStep > 1) { ciStep--; updateCheckinStep(); }
+}
+function selectIntensity(el) {
+  el.closest('.intensity-opts').querySelectorAll('.intensity-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── CONFETTI ─────────────────────────────────────
+function showConfetti() {
+  const overlay = document.getElementById('confettiOverlay');
+  const dots = document.getElementById('confettiDots');
+  dots.innerHTML = '';
+  const colors = ['#0066FF','#A8C8F0','#0A1628','#C9D9EE','#1E3A5F'];
+  for (let i = 0; i < 60; i++) {
+    const d = document.createElement('div');
+    d.className = 'confetti-dot';
+    d.style.cssText = `left:${Math.random()*100}%;top:-20px;background:${colors[Math.floor(Math.random()*colors.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>0.5?'50%':'2px'};animation-delay:${Math.random()*1.5}s;animation-duration:${1.5+Math.random()}s;`;
+    dots.appendChild(d);
+  }
+  overlay.style.display = 'flex';
+  showToast('Workout logged! +200 XP earned.', 'success');
+}
+function closeConfetti() {
+  document.getElementById('confettiOverlay').style.display = 'none';
+}
+
+// ── TOASTS ───────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const icons = {
+    success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-error)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    info:    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    warning: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-icon">${icons[type]}</div><div><div class="toast-title">${msg}</div></div>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(24px)'; t.style.transition='all 0.3s'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ── INIT ─────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const fill = document.getElementById('xpBarFill');
+    if (fill) fill.style.width = '84%';
+  }, 400);
+
+  document.getElementById('ciNotes')?.addEventListener('input', function() {
+    document.getElementById('noteCount').textContent = this.value.length + '/140';
+    if (this.value.length > 140) this.value = this.value.slice(0,140);
+  });
+});
+
+// Close modal on overlay click
+document.getElementById('checkinModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCheckinModal();
+});
+</script>
+</body>
+</html>
