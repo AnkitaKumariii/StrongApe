@@ -4,6 +4,8 @@ import { Landing } from "@/pages/Landing"
 import { Communities } from "@/pages/Communities"
 import { Nearby } from "@/pages/Nearby"
 import { Profile } from "@/pages/Profile"
+import { Messages } from "@/pages/Messages"
+import { Leaderboard } from "@/pages/Leaderboard"
 import { useAuth } from "@/context/AuthContext"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -45,6 +47,8 @@ function App() {
         <Route path="/communities" element={<ProtectedRoute><Communities /></ProtectedRoute>} />
         <Route path="/nearby" element={<ProtectedRoute><Nearby /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
@@ -52,4 +56,5 @@ function App() {
 }
 
 export default App
+
 

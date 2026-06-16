@@ -28,3 +28,14 @@ async def get_nearby(
     current_user: User = Depends(get_current_user)
 ):
     return await UserController.get_nearby_users(db=db, user=current_user, max_distance=max_distance_km)
+
+@router.get("/leaderboard", response_model=List[UserOut])
+async def get_leaderboard(
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from sqlalchemy.future import select
+    result = await db.execute(select(User).order_by(User.xp.desc()).limit(limit))
+    return result.scalars().all()
+
