@@ -204,7 +204,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
+        
         {/* Left Column - Stats */}
         <div className="lg:col-span-3 space-y-6">
           <Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
@@ -291,23 +291,32 @@ export function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            <WorkoutPost 
-              author="Rahul M." 
-              initials="R" 
-              timeAgo="2 hours ago" 
-              content="Just hit a new PR on deadlifts! 180kg x 3. The consistency is finally paying off. Thanks to the 6AM crew for the spot." 
-              likes={24} 
-              comments={5} 
-              isLiked 
-            />
-            <WorkoutPost 
-              author="Karan S." 
-              initials="K" 
-              timeAgo="4 hours ago" 
-              content="Light recovery run today. 5km around the park. Getting ready for the weekend challenge." 
-              likes={12} 
-              comments={1} 
-            />
+            {feedLoading && posts.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 font-medium">Loading feed...</div>
+            ) : posts.length === 0 ? (
+              <Card className="border-slate-200 text-center py-12 bg-slate-50/50">
+                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                  <Activity className="w-8 h-8" />
+                </div>
+                <h3 className="font-bold text-lg text-slate-900 mb-2">No feed posts yet</h3>
+                <p className="text-slate-500 font-medium mb-6">Create the very first post to start the conversation!</p>
+              </Card>
+            ) : (
+              posts.map((post) => (
+                <WorkoutPost 
+                  key={post.id}
+                  id={post.id}
+                  author={post.author.full_name || post.author.username} 
+                  initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()} 
+                  timeAgo={formatTimeAgo(post.created_at)} 
+                  content={post.content} 
+                  likes={post.likes_count} 
+                  comments={0} // Backend doesn't support comments directly yet, defaulting to 0
+                  isLiked={post.has_liked}
+                  onLikeToggle={handleLikeToggle}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -319,7 +328,7 @@ export function Dashboard() {
               <a href="/nearby">See all</a>
             </Button>
           </div>
-
+          
           <div className="space-y-3">
             {nearbyLoading ? (
               <div className="text-center py-4 text-xs text-slate-400">Loading partners...</div>

@@ -123,7 +123,7 @@ export function Communities() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Search communities by name, sport, or goal..." 
+            placeholder="Search communities by name, category, or goal..." 
             className="pl-9 h-12 rounded-xl border-slate-200 bg-white"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -168,42 +168,115 @@ export function Communities() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { name: "Morning Lifters", members: "1.2k", type: "General Fitness", active: true },
-          { name: "Powerlifting India", members: "8.4k", type: "Strength", active: false },
-          { name: "5K Every Day", members: "3.2k", type: "Cardio", active: true },
-          { name: "Calisthenics Pros", members: "840", type: "Bodyweight", active: false },
-          { name: "Yoga & Mobility", members: "4.5k", type: "Recovery", active: false },
-          { name: "Hyrox Training", members: "1.1k", type: "Hybrid", active: true },
-        ].map((community) => (
-          <Card key={community.name} className="border-slate-200 hover:shadow-md transition-all cursor-pointer group">
-            <CardContent className="p-6">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-lg text-slate-900 mb-1">{community.name}</h3>
-              <p className="text-sm font-semibold text-slate-500 mb-4">{community.type}</p>
-              
-              <div className="flex items-center justify-between mt-auto">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
-                    <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
-                    <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-400"></div>
+      {loading ? (
+        <div className="text-center py-12 text-slate-400 font-medium">Loading communities...</div>
+      ) : filteredCommunities.length === 0 ? (
+        <div className="text-center py-12 text-slate-500 font-medium bg-slate-50 border border-slate-200 rounded-3xl p-6">
+          No communities found. Click "Create Community" to build one!
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCommunities.map((community) => (
+            <Card key={community.id} className="border-slate-200 hover:shadow-md transition-all cursor-pointer group">
+              <CardContent className="p-6 flex flex-col h-full justify-between">
+                <div>
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                    <Users className="w-6 h-6" />
                   </div>
-                  <span className="text-xs font-bold text-slate-500">{community.members}</span>
+                  <h3 className="font-bold text-lg text-slate-900 mb-1">{community.name}</h3>
+                  <p className="text-sm font-semibold text-slate-500 mb-2 uppercase tracking-wide">{community.category}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">{community.description}</p>
                 </div>
-                {community.active ? (
-                  <Button size="sm" variant="outline" className="rounded-full border-primary text-primary hover:bg-primary/5">Joined</Button>
-                ) : (
-                  <Button size="sm" className="rounded-full">Join</Button>
-                )}
+                
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+                      <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+                      <div className="w-6 h-6 rounded-full border-2 border-white bg-slate-400"></div>
+                    </div>
+                    <span className="text-xs font-bold text-slate-500">
+                      {community.member_count} {community.member_count === 1 ? "member" : "members"}
+                    </span>
+                  </div>
+                  {community.is_member ? (
+                    <Button size="sm" variant="outline" className="rounded-full border-primary text-primary hover:bg-primary/5 cursor-default" disabled>
+                      Joined
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleJoin(community.id)} size="sm" className="rounded-full cursor-pointer">
+                      Join
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Create Community Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:rounded-3xl border-slate-200 max-w-md p-8 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">Create Community</DialogTitle>
+            <DialogDescription className="text-slate-500 font-semibold mt-1">
+              Start a new group and invite others to train with you.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubmit} className="space-y-4 mt-4">
+            {createError && (
+              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl">
+                {createError}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Name</label>
+              <Input
+                type="text"
+                placeholder="Morning Lifters Delhi"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 rounded-xl border-slate-200"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full h-12 rounded-xl border border-slate-200 px-3 bg-white text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              >
+                <option value="Powerlifting">Powerlifting</option>
+                <option value="Running">Running</option>
+                <option value="CrossFit">CrossFit</option>
+                <option value="General Fitness">General Fitness</option>
+                <option value="Yoga & Mobility">Yoga & Mobility</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Description</label>
+              <Input
+                type="text"
+                placeholder="A group for powerlifters training at 6 AM."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="h-12 rounded-xl border-slate-200"
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20 text-base cursor-pointer"
+              disabled={createLoading}
+            >
+              {createLoading ? "Creating..." : "Create & Open"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }
