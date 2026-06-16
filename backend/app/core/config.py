@@ -2,6 +2,10 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
+_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_DEFAULT_SQLITE_PATH = os.path.join(_BACKEND_DIR, "strongape.db").replace("\\", "/")
+_DEFAULT_DATABASE_URL = f"sqlite+aiosqlite:///{_DEFAULT_SQLITE_PATH}"
+
 class Settings(BaseSettings):
     APP_NAME: str = "StrongApe API"
     DEBUG: bool = True
@@ -11,9 +15,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     
-    # DB URL
-    # Replace postgresql:// with postgresql+asyncpg:// if needed
-    DATABASE_URL: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/strongape")
+    # DB URL — SQLite by default for local dev; use PostgreSQL in production via .env
+    DATABASE_URL: str = Field(default=_DEFAULT_DATABASE_URL)
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),

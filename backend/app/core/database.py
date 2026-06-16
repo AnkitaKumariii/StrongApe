@@ -33,14 +33,12 @@ AsyncSessionLocal = async_sessionmaker(
 # Base model for SQLAlchemy models
 Base = declarative_base()
 
-# Async DB dependency for FastAPI endpoints
+# Async DB dependency for FastAPI endpoints.
+# Services commit explicitly; get_db only rolls back on unhandled errors.
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()
