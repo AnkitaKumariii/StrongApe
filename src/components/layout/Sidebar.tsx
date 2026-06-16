@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom"
-import { Home, Users, MapPin, MessageSquare, Award, ChevronLeft, ChevronRight } from "lucide-react"
+import { Home, Users, MapPin, MessageSquare, Award, ChevronLeft, ChevronRight, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useAuth } from "@/context/AuthContext"
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -18,6 +19,7 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const location = useLocation()
+  const { user, logout } = useAuth()
 
   return (
     <aside className={cn(
@@ -81,23 +83,39 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
         })}
       </nav>
 
-      <div className={cn("p-4 border-t border-slate-100", isCollapsed ? "flex justify-center" : "")}>
+      <div className={cn("p-4 border-t border-slate-100 flex flex-col gap-2", isCollapsed ? "items-center" : "")}>
         <Link 
           to="/profile" 
           title={isCollapsed ? "Profile" : undefined}
-          className={cn("flex items-center hover:bg-slate-50 transition-colors", isCollapsed ? "justify-center p-0 rounded-full" : "gap-3 p-3 rounded-xl")}
+          className={cn("flex items-center hover:bg-slate-50 transition-colors w-full", isCollapsed ? "justify-center p-0 rounded-full" : "gap-3 p-3 rounded-xl")}
         >
           <Avatar className="shrink-0">
-            <AvatarFallback className="bg-primary text-white font-bold">A</AvatarFallback>
+            <AvatarFallback className="bg-primary text-white font-bold">
+              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
+            </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div className="flex-1 min-w-0 overflow-hidden">
-              <div className="text-sm font-semibold text-slate-900 truncate">Ankit</div>
-              <div className="text-xs text-slate-500 truncate">Level 24</div>
+              <div className="text-sm font-semibold text-slate-900 truncate">
+                {user?.full_name || user?.username || "Ape"}
+              </div>
+              <div className="text-xs text-slate-500 truncate">Level {user?.level || 1}</div>
             </div>
           )}
         </Link>
+        <button
+          onClick={logout}
+          title={isCollapsed ? "Log Out" : undefined}
+          className={cn(
+            "flex items-center text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent",
+            isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3 text-sm font-medium"
+          )}
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!isCollapsed && <span>Log Out</span>}
+        </button>
       </div>
     </aside>
   )
 }
+
