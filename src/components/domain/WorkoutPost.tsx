@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 interface WorkoutPostProps {
+  id: number
   author: string
   initials: string
   timeAgo: string
@@ -12,9 +13,10 @@ interface WorkoutPostProps {
   likes: number
   comments: number
   isLiked?: boolean
+  onLikeToggle?: (postId: number) => void
 }
 
-export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, likes, comments, isLiked }: WorkoutPostProps) {
+export function WorkoutPost({ id, author, initials, timeAgo, content, mediaUrl, likes, comments, isLiked, onLikeToggle }: WorkoutPostProps) {
   return (
     <Card className="border-slate-200">
       <CardHeader className="p-4 pb-2 flex flex-row items-center gap-3">
@@ -32,7 +34,7 @@ export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, like
 
       <CardContent className="p-4 pt-2">
         <p className="text-slate-700 text-sm leading-relaxed mb-3">{content}</p>
-
+        
         {mediaUrl && (
           <div className="rounded-xl overflow-hidden bg-slate-100 border border-slate-200 aspect-video mb-2 flex items-center justify-center">
             {/* Placeholder for actual image */}
@@ -42,7 +44,11 @@ export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, like
       </CardContent>
 
       <CardFooter className="p-2 px-4 border-t border-slate-100 flex gap-1">
-        <Button variant="ghost" className={`flex-1 rounded-full h-9 gap-2 text-xs font-semibold ${isLiked ? 'text-primary' : 'text-slate-500'}`}>
+        <Button 
+          variant="ghost" 
+          onClick={() => onLikeToggle && onLikeToggle(id)}
+          className={`flex-1 rounded-full h-9 gap-2 text-xs font-semibold ${isLiked ? 'text-primary' : 'text-slate-500'}`}
+        >
           <Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} />
           {likes}
         </Button>
@@ -58,3 +64,4 @@ export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, like
     </Card>
   )
 }
+

@@ -1,0 +1,122 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { api } from "@/lib/api";
+
+export interface User {
+  id: number;
+  email: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  level: number;
+  xp: number;
+  current_streak: number;
+  gym_name: string | null;
+  location_lat: number | null;
+  location_lon: number | null;
+  settings: Record<string, any>;
+  created_at: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  login: (usernameOrEmail: string, password: string) => Promise<void>;
+  register: (email: string, username: string, fullName: string, password: string) => Promise<void>;
+  logout: () => void;
+  updateProfile: (profileData: { full_name?: string; gym_name?: string; avatar_url?: string; location_lat?: number; location_lon?: number }) => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [loading, setLoading] = useState(true);
+
+  const refreshProfile = async () => {
+    try {
+      const userData = await api.get<User>("/api/users/me");
+      setUser(userData);
+    } catch (error) {
+      console.error("Failed to fetch current user profile:", error);
+      logout();
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      if (token) {
+        await refreshProfile();
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+    initAuth();
+  }, [token]);
+
+  const login = async (usernameOrEmail: string, password: string) => {
+    const data = await api.post<{ access_token: string; token_type: string }>("/api/auth/login", {
+      username_or_email: usernameOrEmail,
+      password,
+    });
+    localStorage.setItem("token", data.access_token);
+    setToken(data.access_token);
+  };
+
+  const register = async (email: string, username: string, fullName: string, password: string) => {
+    // 1. Register the user
+    await api.post<User>("/api/auth/register", {
+      email,
+      username,
+      full_name: fullName,
+      password,
+    });
+    // 2. Automatically log in after registration
+    await login(username, password);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+  };
+
+  const updateProfile = async (profileData: {
+    full_name?: string;
+    gym_name?: string;
+    avatar_url?: string;
+    location_lat?: number;
+    location_lon?: number;
+  }) => {
+    const updatedUser = await api.patch<User>("/api/users/me/profile", profileData);
+    setUser(updatedUser);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        updateProfile,
+        refreshProfile,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}
