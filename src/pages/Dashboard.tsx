@@ -37,7 +37,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column - Stats */}
         <div className="lg:col-span-3 space-y-6">
           <Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
@@ -107,22 +107,22 @@ export function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            <WorkoutPost 
-              author="Rahul M." 
-              initials="R" 
-              timeAgo="2 hours ago" 
-              content="Just hit a new PR on deadlifts! 180kg x 3. The consistency is finally paying off. Thanks to the 6AM crew for the spot." 
-              likes={24} 
-              comments={5} 
-              isLiked 
+            <WorkoutPost
+              author="Rahul M."
+              initials="R"
+              timeAgo="2 hours ago"
+              content="Just hit a new PR on deadlifts! 180kg x 3. The consistency is finally paying off. Thanks to the 6AM crew for the spot."
+              likes={24}
+              comments={5}
+              isLiked
             />
-            <WorkoutPost 
-              author="Karan S." 
-              initials="K" 
-              timeAgo="4 hours ago" 
-              content="Light recovery run today. 5km around the park. Getting ready for the weekend challenge." 
-              likes={12} 
-              comments={1} 
+            <WorkoutPost
+              author="Karan S."
+              initials="K"
+              timeAgo="4 hours ago"
+              content="Light recovery run today. 5km around the park. Getting ready for the weekend challenge."
+              likes={12}
+              comments={1}
             />
           </div>
         </div>
@@ -133,7 +133,7 @@ export function Dashboard() {
             <h2 className="font-bold text-sm text-slate-900 uppercase tracking-wider">Nearby Partners</h2>
             <span className="text-xs font-bold text-primary cursor-pointer">See all</span>
           </div>
-          
+
           <div className="space-y-3">
             <UserCard name="Rahul M." initials="R" level={24} distance="1.2 km" tags={["Strength", "6AM"]} active />
             <UserCard name="Karan S." initials="K" level={18} distance="2.4 km" tags={["Cardio", "Evening"]} />

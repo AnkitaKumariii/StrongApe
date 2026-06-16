@@ -37,7 +37,7 @@ export function UserCard({ name, initials, level, distance, tags, active }: User
             </div>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-1.5">
           {tags.map(tag => (
             <Badge key={tag} className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-3 py-1 text-xs shadow-none">

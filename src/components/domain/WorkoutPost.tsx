@@ -29,10 +29,10 @@ export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, like
           <MoreHorizontal className="w-4 h-4" />
         </Button>
       </CardHeader>
-      
+
       <CardContent className="p-4 pt-2">
         <p className="text-slate-700 text-sm leading-relaxed mb-3">{content}</p>
-        
+
         {mediaUrl && (
           <div className="rounded-xl overflow-hidden bg-slate-100 border border-slate-200 aspect-video mb-2 flex items-center justify-center">
             {/* Placeholder for actual image */}
@@ -40,7 +40,7 @@ export function WorkoutPost({ author, initials, timeAgo, content, mediaUrl, like
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="p-2 px-4 border-t border-slate-100 flex gap-1">
         <Button variant="ghost" className={`flex-1 rounded-full h-9 gap-2 text-xs font-semibold ${isLiked ? 'text-primary' : 'text-slate-500'}`}>
           <Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} />

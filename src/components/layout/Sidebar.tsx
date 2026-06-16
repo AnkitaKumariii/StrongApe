@@ -36,8 +36,8 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
       <div className={cn("border-b border-slate-100 flex items-center", isCollapsed ? "p-4 justify-center" : "p-6 gap-3")}>
         <div className="w-10 h-10 min-w-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0"/>
-            <path d="M3 19c0-4 9-4 9-4s9 0 9 4"/>
+            <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0" />
+            <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
           </svg>
         </div>
         {!isCollapsed && <span className="font-bold text-xl text-slate-900 tracking-tight whitespace-nowrap overflow-hidden">StrongApe</span>}
@@ -50,7 +50,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
           </div>
         )}
         {isCollapsed && <div className="h-4"></div>}
-        
+
         {navItems.map((item) => {
           const isActive = location.pathname === item.href
           return (
@@ -61,8 +61,8 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
               className={cn(
                 "relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                 isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3",
-                isActive 
-                  ? "bg-primary/10 text-primary border-l-2 border-primary" 
+                isActive
+                  ? "bg-primary/10 text-primary border-l-2 border-primary"
                   : "hover:bg-slate-50 hover:text-slate-900 text-slate-500 border-l-2 border-transparent"
               )}
             >
@@ -82,8 +82,8 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
       </nav>
 
       <div className={cn("p-4 border-t border-slate-100", isCollapsed ? "flex justify-center" : "")}>
-        <Link 
-          to="/profile" 
+        <Link
+          to="/profile"
           title={isCollapsed ? "Profile" : undefined}
           className={cn("flex items-center hover:bg-slate-50 transition-colors", isCollapsed ? "justify-center p-0 rounded-full" : "gap-3 p-3 rounded-xl")}
         >

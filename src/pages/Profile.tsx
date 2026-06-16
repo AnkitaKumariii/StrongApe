@@ -54,7 +54,7 @@ export function Profile() {
                   <Badge className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-3 py-1 text-xs shadow-none">Morning Crew</Badge>
                 </div>
               </div>
-              
+
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-4">
                 <StreakBadge days={24} active className="w-full justify-center py-3 bg-white" />
                 <XPProgress currentXP={4200} maxXP={5000} level={24} />
@@ -76,7 +76,7 @@ export function Profile() {
               Stats
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="workouts" className="mt-8 space-y-6">
             <Card className="border-slate-200 text-center py-12 bg-slate-50/50">
               <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
@@ -87,7 +87,7 @@ export function Profile() {
               <Button className="rounded-full font-bold px-8 shadow-lg shadow-primary/20">Log Workout</Button>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="achievements" className="mt-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {[

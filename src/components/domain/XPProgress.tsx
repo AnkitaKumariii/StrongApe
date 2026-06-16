@@ -22,7 +22,7 @@ export function XPProgress({ currentXP, maxXP, level, className }: XPProgressPro
         </div>
       </div>
       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-primary transition-all duration-1000 ease-out rounded-full"
           style={{ width: `${percentage}%` }}
         />

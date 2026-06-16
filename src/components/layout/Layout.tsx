@@ -16,7 +16,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="hidden lg:block">
         <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       </div>
-      
+
       <div className={cn(
         "flex-1 flex flex-col min-h-screen transition-all duration-300",
         isCollapsed ? "lg:ml-20" : "lg:ml-64"

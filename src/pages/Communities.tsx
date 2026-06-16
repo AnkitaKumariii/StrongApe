@@ -21,8 +21,8 @@ export function Communities() {
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Search communities by name, sport, or goal..." 
+          <Input
+            placeholder="Search communities by name, sport, or goal..."
             className="pl-9 h-12 rounded-xl border-slate-200 bg-white"
           />
         </div>
@@ -50,7 +50,7 @@ export function Communities() {
               </div>
               <h3 className="font-bold text-lg text-slate-900 mb-1">{community.name}</h3>
               <p className="text-sm font-semibold text-slate-500 mb-4">{community.type}</p>
-              
+
               <div className="flex items-center justify-between mt-auto">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
