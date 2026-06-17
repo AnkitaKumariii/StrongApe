@@ -10,7 +10,7 @@ import { StreakBadge } from "@/components/domain/StreakBadge"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Settings, Edit2, MapPin, Calendar, Award, Activity } from "lucide-react"
+import { Settings, Edit2, MapPin, Calendar, Award, Activity, Target, Scale, Ruler, Utensils, Coffee, Candy, ShieldAlert } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 
@@ -195,6 +195,9 @@ export function Profile() {
             <TabsTrigger value="stats" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 h-full font-bold text-base data-[state=active]:text-primary text-slate-500">
               Stats
             </TabsTrigger>
+            <TabsTrigger value="fitness_profile" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 h-full font-bold text-base data-[state=active]:text-primary text-slate-500">
+              Fitness Profile
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="workouts" className="mt-8 space-y-6">
@@ -272,6 +275,174 @@ export function Profile() {
                 <div className="text-3xl font-black text-slate-900">{user?.xp || 0} XP</div>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="fitness_profile" className="mt-8 space-y-6">
+            {!user?.settings?.fitness_profile ? (
+              <Card className="border-slate-200 text-center py-12 bg-slate-50/50">
+                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                  <Target className="w-8 h-8" />
+                </div>
+                <h3 className="font-bold text-lg text-slate-900 mb-2">No Fitness Profile setup yet</h3>
+                <p className="text-slate-500 font-medium mb-6">Set up your fitness goals and dietary preferences on the dashboard.</p>
+              </Card>
+            ) : (() => {
+              const fp = user.settings.fitness_profile;
+              const weightNum = parseFloat(fp.weight);
+              const heightNum = parseFloat(fp.height) / 100; // in meters
+              const bmi = (weightNum && heightNum) ? (weightNum / (heightNum * heightNum)).toFixed(1) : null;
+              
+              let bmiCategory = "";
+              let bmiColor = "";
+              if (bmi) {
+                const bmiVal = parseFloat(bmi);
+                if (bmiVal < 18.5) { bmiCategory = "Underweight"; bmiColor = "text-yellow-600 bg-yellow-50 border-yellow-100"; }
+                else if (bmiVal < 25) { bmiCategory = "Normal"; bmiColor = "text-green-600 bg-green-50 border-green-100"; }
+                else if (bmiVal < 30) { bmiCategory = "Overweight"; bmiColor = "text-orange-600 bg-orange-50 border-orange-100"; }
+                else { bmiCategory = "Obese"; bmiColor = "text-red-600 bg-red-50 border-red-100"; }
+              }
+
+              const goalLabels: Record<string, string> = {
+                muscle: "Build Muscle",
+                weight: "Lose Weight",
+                endurance: "Improve Endurance",
+                health: "General Health"
+              };
+
+              const eatingStyleLabels: Record<string, string> = {
+                "3meals": "3 Meals/Day",
+                fasting: "Intermittent Fasting",
+                snacking: "Frequent Snacking"
+              };
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column: Physical Metrics & BMI */}
+                  <div className="space-y-6">
+                    <Card className="border-slate-200 p-6 bg-white rounded-2xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+                      <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <Scale className="w-5 h-5 text-primary" /> Physical Metrics
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                          <div className="text-xs font-bold text-slate-400 uppercase">Weight</div>
+                          <div className="text-2xl font-black text-slate-900 mt-1">{fp.weight} <span className="text-sm font-semibold text-slate-500">kg</span></div>
+                        </div>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                          <div className="text-xs font-bold text-slate-400 uppercase">Height</div>
+                          <div className="text-2xl font-black text-slate-900 mt-1">{fp.height} <span className="text-sm font-semibold text-slate-500">cm</span></div>
+                        </div>
+                      </div>
+                      
+                      {bmi && (
+                        <div className="border-t border-slate-100 pt-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs font-bold text-slate-400 uppercase">Calculated BMI</div>
+                              <div className="text-3xl font-black text-slate-900 mt-1">{bmi}</div>
+                            </div>
+                            <Badge className={`px-4 py-2 rounded-xl text-sm font-extrabold border shadow-none ${bmiColor}`}>
+                              {bmiCategory}
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+
+                    <Card className="border-slate-200 p-6 bg-white rounded-2xl">
+                      <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <Utensils className="w-5 h-5 text-primary" /> Dietary Preferences
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="font-bold text-slate-600">Meat Consumption</span>
+                          <Badge variant="outline" className={`font-extrabold px-3 py-1 text-xs rounded-lg ${fp.dietMeat ? "bg-green-50 text-green-700 border-green-100" : "bg-slate-50 text-slate-600 border-slate-200"}`}>
+                            {fp.dietMeat ? "Meat Eater" : "Vegetarian/No Meat"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="font-bold text-slate-600">Lactose Tolerance</span>
+                          <Badge variant="outline" className={`font-extrabold px-3 py-1 text-xs rounded-lg ${fp.dietLactose ? "bg-red-50 text-red-700 border-red-100" : "bg-green-50 text-green-700 border-green-100"}`}>
+                            {fp.dietLactose ? "Lactose Intolerant" : "Lactose Tolerant"}
+                          </Badge>
+                        </div>
+                        <div className="pt-2">
+                          <span className="block text-xs font-bold text-slate-400 uppercase mb-3">Allergies</span>
+                          {fp.allergies && fp.allergies.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {fp.allergies.map((allergy: string) => (
+                                <Badge key={allergy} className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-50 font-bold px-3 py-1.5 text-xs rounded-lg shadow-none flex items-center gap-1.5">
+                                  <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                                  {allergy}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-sm font-semibold italic">No known allergies</span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Right Column: Goals & Nutrition */}
+                  <div className="space-y-6">
+                    <Card className="border-slate-200 p-6 bg-white rounded-2xl">
+                      <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <Target className="w-5 h-5 text-primary" /> Fitness Goal
+                      </h3>
+                      <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 text-center">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                          <Target className="w-8 h-8" />
+                        </div>
+                        <div className="text-xs font-bold text-slate-400 uppercase">Primary Goal</div>
+                        <div className="text-2xl font-black text-slate-900 mt-1">
+                          {goalLabels[fp.primaryGoal] || fp.primaryGoal}
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="border-slate-200 p-6 bg-white rounded-2xl">
+                      <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-primary" /> Lifestyle & Consumption
+                      </h3>
+                      <div className="space-y-6">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-500">
+                            <Utensils className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase">Eating Style</div>
+                            <div className="font-bold text-slate-800 mt-0.5">{eatingStyleLabels[fp.eatingStyle] || fp.eatingStyle}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-500">
+                            <Coffee className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase">Caffeine Consumption</div>
+                            <div className="font-bold text-slate-800 mt-0.5 capitalize">{fp.caffeine}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-500">
+                            <Candy className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase">Sugar Consumption</div>
+                            <div className="font-bold text-slate-800 mt-0.5 capitalize">{fp.sugar} sugar</div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              );
+            })()}
           </TabsContent>
         </Tabs>
       </div>

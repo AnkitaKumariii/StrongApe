@@ -1,9 +1,15 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, User, Target, Scale, Ruler, ChevronDown, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { useAuth } from "@/context/AuthContext"
 
 export function FitnessProfileSetup() {
+  const { user, updateProfile } = useAuth()
+  const [saveLoading, setSaveLoading] = useState(false)
+  const [saveError, setSaveError] = useState("")
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
   const [formData, setFormData] = useState({
     primaryGoal: "",
     weight: "",
@@ -16,6 +22,25 @@ export function FitnessProfileSetup() {
     caffeine: "",
     sugar: ""
   })
+
+  // Pre-fill form from user settings if already populated
+  useEffect(() => {
+    if (user?.settings?.fitness_profile) {
+      const fp = user.settings.fitness_profile
+      setFormData({
+        primaryGoal: fp.primaryGoal || "",
+        weight: fp.weight || "",
+        height: fp.height || "",
+        dietMeat: fp.dietMeat !== undefined ? fp.dietMeat : true,
+        dietLactose: fp.dietLactose !== undefined ? fp.dietLactose : false,
+        allergyInput: "",
+        allergies: fp.allergies || [],
+        eatingStyle: fp.eatingStyle || "",
+        caffeine: fp.caffeine || "",
+        sugar: fp.sugar || ""
+      })
+    }
+  }, [user])
 
   const handleInputChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -36,6 +61,53 @@ export function FitnessProfileSetup() {
       ...prev,
       allergies: prev.allergies.filter(a => a !== allergy)
     }))
+  }
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaveError("")
+    setSaveSuccess(false)
+
+    // Validate inputs
+    if (!formData.primaryGoal) {
+      setSaveError("Please select a primary goal.")
+      return
+    }
+    if (!formData.weight || isNaN(parseFloat(formData.weight)) || parseFloat(formData.weight) <= 0) {
+      setSaveError("Please enter a valid weight in kg.")
+      return
+    }
+    if (!formData.height || isNaN(parseFloat(formData.height)) || parseFloat(formData.height) <= 0) {
+      setSaveError("Please enter a valid height in cm.")
+      return
+    }
+    if (!formData.eatingStyle) {
+      setSaveError("Please select an eating style.")
+      return
+    }
+    if (!formData.caffeine) {
+      setSaveError("Please select caffeine consumption.")
+      return
+    }
+    if (!formData.sugar) {
+      setSaveError("Please select sugar consumption.")
+      return
+    }
+
+    setSaveLoading(true)
+    try {
+      const { allergyInput, ...profileDetails } = formData
+      await updateProfile({
+        settings: {
+          fitness_profile: profileDetails
+        }
+      })
+      setSaveSuccess(true)
+    } catch (err: any) {
+      setSaveError(err.message || "Failed to save fitness profile.")
+    } finally {
+      setSaveLoading(false)
+    }
   }
 
   return (
@@ -64,7 +136,7 @@ export function FitnessProfileSetup() {
           <p className="text-slate-500 font-medium">Tell us about yourself to get personalized workout and meal plans</p>
         </div>
 
-        <form className="space-y-8 relative z-10" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-8 relative z-10" onSubmit={handleSaveProfile}>
           
           {/* Primary Goal */}
           <div className="space-y-2">
@@ -256,12 +328,24 @@ export function FitnessProfileSetup() {
             </div>
           </div>
 
+          {saveError && (
+            <div className="p-4 text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl">
+              {saveError}
+            </div>
+          )}
+          {saveSuccess && (
+            <div className="p-4 text-sm font-bold text-green-600 bg-green-50 border border-green-100 rounded-xl">
+              Profile saved successfully!
+            </div>
+          )}
+
           <div className="pt-8">
             <button 
-              type="button"
-              className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-black rounded-xl text-lg transition-colors shadow-lg shadow-primary/20"
+              type="submit"
+              disabled={saveLoading}
+              className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-black rounded-xl text-lg transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              Save Profile
+              {saveLoading ? "Saving..." : "Save Profile"}
             </button>
           </div>
 

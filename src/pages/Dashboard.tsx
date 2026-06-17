@@ -4,6 +4,7 @@ import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
 import { WorkoutPost } from "@/components/domain/WorkoutPost"
 import { FitnessProfileSetup } from "@/components/domain/FitnessProfileSetup"
+import { EncryptedText } from "@/components/ui/encrypted-text"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -224,7 +225,12 @@ export function Dashboard() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">
-              Ready to crush it, {user?.full_name?.split(" ")[0] || user?.username || "Ape"}?
+              <EncryptedText
+                text={`Welcome to StrongApe, ${user?.username || "Ape"}.`}
+                encryptedClassName="text-white/40 font-mono"
+                revealedClassName="text-white"
+                revealDelayMs={50}
+              />
             </h1>
             <p className="text-white/80 font-medium flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
@@ -242,7 +248,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <FitnessProfileSetup />
+      {!user?.settings?.fitness_profile && <FitnessProfileSetup />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         

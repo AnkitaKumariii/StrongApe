@@ -24,7 +24,14 @@ interface AuthContextType {
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   register: (email: string, username: string, fullName: string, password: string) => Promise<void>;
   logout: () => void;
-  updateProfile: (profileData: { full_name?: string; gym_name?: string; avatar_url?: string; location_lat?: number; location_lon?: number }) => Promise<void>;
+  updateProfile: (profileData: {
+    full_name?: string;
+    gym_name?: string;
+    avatar_url?: string;
+    location_lat?: number;
+    location_lon?: number;
+    settings?: Record<string, any>;
+  }) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -90,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     avatar_url?: string;
     location_lat?: number;
     location_lon?: number;
+    settings?: Record<string, any>;
   }) => {
     const updatedUser = await api.patch<User>("/api/users/me/profile", profileData);
     setUser(updatedUser);
