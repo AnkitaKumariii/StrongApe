@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
 import { WorkoutPost } from "@/components/domain/WorkoutPost"
+import { FitnessProfileSetup } from "@/components/domain/FitnessProfileSetup"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -202,6 +203,8 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      <FitnessProfileSetup />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
