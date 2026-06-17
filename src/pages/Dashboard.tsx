@@ -32,6 +32,7 @@ interface Post {
   author: PostAuthor;
   likes_count: number;
   has_liked: boolean;
+  media_url?: string;
 }
 
 interface NearbyUser {
@@ -250,55 +251,11 @@ export function Dashboard() {
 
       {!user?.settings?.fitness_profile && <FitnessProfileSetup />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="flex flex-col gap-12 max-w-4xl mx-auto w-full">
         
-        {/* Left Column - Stats */}
-        <div className="lg:col-span-3 space-y-6">
-          <Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                  <Flame className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-primary" />
-                XP Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
-              <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="border-slate-200 text-center p-4">
-              <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
-            </Card>
-            <Card className="border-slate-200 text-center p-4">
-              <Target className="w-6 h-6 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Center Column - Feed */}
-        <div className="lg:col-span-6 space-y-6">
-          <Card className="border-slate-200 shadow-sm">
+        {/* Top Section - Feed */}
+        <div className="space-y-6 w-full">
+<Card className="border-slate-200 shadow-sm">
             <CardContent className="p-4 flex gap-4">
               <Avatar className="w-10 h-10 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-white font-bold">
@@ -402,9 +359,81 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column - Recommendations */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="flex items-center justify-between">
+        {/* Bottom Section - Stats & Recommendations */}
+        <div className="w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Left Col - Stats */}
+            <div className="space-y-6">
+<Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                  <Flame className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
+                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-primary" />
+                XP Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
+              <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
+            </CardContent>
+          </Card>
+            </div>
+
+            {/* Middle Col - More Stats & Leaderboard */}
+            <div className="space-y-6">
+<div className="grid grid-cols-2 gap-4">
+            <Card className="border-slate-200 text-center p-4">
+              <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
+            </Card>
+            <Card className="border-slate-200 text-center p-4">
+              <Target className="w-6 h-6 text-primary mx-auto mb-2" />
+              <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
+            </Card>
+          </div>
+<Card className="border-slate-200 mt-8 bg-slate-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+              {[
+                { rank: 1, name: "Vikas M.", xp: "9,800" },
+                { rank: 2, name: "Arjun P.", xp: "8,400" },
+                { rank: 3, name: "Kiran M.", xp: "7,900" }
+              ].map((user) => (
+                <div key={user.rank} className="flex items-center gap-3">
+                  <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
+                  <Avatar className="w-8 h-8 flex-shrink-0">
+                    <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
+                  <div className="text-xs font-bold text-slate-500">{user.xp}</div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+            </div>
+
+            {/* Right Col - Recommendations */}
+            <div className="space-y-6">
+<div className="flex items-center justify-between">
             <h2 className="font-bold text-sm text-slate-900 uppercase tracking-wider">Nearby Partners</h2>
             <Button asChild variant="link" className="text-xs font-bold text-primary p-0 h-auto">
               <a href="/nearby">See all</a>
@@ -432,28 +461,9 @@ export function Dashboard() {
               ))
             )}
           </div>
+            </div>
 
-          <Card className="border-slate-200 mt-8 bg-slate-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
-              {[
-                { rank: 1, name: "Vikas M.", xp: "9,800" },
-                { rank: 2, name: "Arjun P.", xp: "8,400" },
-                { rank: 3, name: "Kiran M.", xp: "7,900" }
-              ].map((user) => (
-                <div key={user.rank} className="flex items-center gap-3">
-                  <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
-                  <div className="text-xs font-bold text-slate-500">{user.xp}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          </div>
         </div>
 
       </div>

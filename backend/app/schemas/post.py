@@ -4,7 +4,7 @@ from datetime import datetime
 from app.schemas.user import UserPublic
 
 class PostCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=1000)
+    content: str = Field("", max_length=1000)
     post_type: str = Field("regular", pattern="^(regular|check_in|badge_unlocked)$")
     post_metadata: Optional[Dict[str, Any]] = None
     media_url: Optional[str] = None
