@@ -1,13 +1,45 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.routes.deps import get_current_user
 from app.controllers.post import PostController
 from app.schemas.post import PostCreate, PostOut, LikeToggle
 from app.models.user import User
+from app.core.errors import BadRequestException
 from typing import List
+import os
+import uuid
 
 router = APIRouter()
+
+@router.post("/upload-image")
+async def upload_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    # Validate extension and content type
+    allowed_types = ["image/jpeg", "image/png"]
+    ext = os.path.splitext(file.filename)[1].lower()
+    if file.content_type not in allowed_types or ext not in [".jpg", ".jpeg", ".png"]:
+        raise BadRequestException("Only JPG and PNG files are allowed.")
+        
+    # Ensure static directory exists
+    upload_dir = "app/static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    # Save the file
+    try:
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        raise BadRequestException(f"Could not save file: {str(e)}")
+        
+    return {"image_url": f"/static/uploads/{unique_filename}"}
 
 @router.post("", response_model=PostOut)
 async def create_post(

@@ -21,7 +21,7 @@ app = FastAPI(
 # Set CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.local|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +29,12 @@ app.add_middleware(
 
 # Register routes
 app.include_router(api_router, prefix="/api")
+
+# Mount static directory for uploads
+from fastapi.staticfiles import StaticFiles
+import os
+os.makedirs("app/static/uploads", exist_ok=True)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Register global error handlers
 register_error_handlers(app)

@@ -16,6 +16,7 @@ class PostController:
             content=db_post.content,
             post_type=db_post.post_type,
             post_metadata=db_post.post_metadata,
+            media_url=db_post.media_url,
             created_at=db_post.created_at,
             author=db_post.author,
             likes_count=0,
