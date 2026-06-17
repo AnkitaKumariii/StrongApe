@@ -37,10 +37,30 @@ function PostSkeleton() {
         <div className="h-6 bg-slate-200 rounded w-12" />
       </div>
     </div>
-  )
+  );
 }
 
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
+import { GlowingEffect } from "@/components/ui/glowing-effect"
+
+const GlowingCard = ({ children, className = "", innerClassName = "bg-white" }: { children: React.ReactNode, className?: string, innerClassName?: string }) => {
+  return (
+    <div className={`group relative rounded-3xl border border-slate-200/50 p-[3px] ${className}`}>
+      <GlowingEffect
+        blur={0}
+        borderWidth={3}
+        spread={150}
+        glow={true}
+        disabled={false}
+        proximity={120}
+        inactiveZone={0.01}
+      />
+      <div className={`relative flex h-full flex-col overflow-hidden rounded-[calc(1.5rem-3px)] shadow-sm z-10 ${innerClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const people = [
   {
@@ -143,6 +163,7 @@ export function Dashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
+  const [visiblePostsCount, setVisiblePostsCount] = useState(2);
   const [feedLoading, setFeedLoading] = useState(true);
 
   const [postContent, setPostContent] = useState("");
@@ -472,33 +493,51 @@ export function Dashboard() {
                 <p className="text-slate-500 font-medium mb-6">Create the very first post to start the conversation!</p>
               </Card>
             ) : (
-              <AnimatePresence mode="popLayout">
-                {posts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    transition={{ duration: 0.4, type: "spring", bounce: 0.2, delay: index * 0.08 }}
-                    whileHover={{ y: -2, transition: { duration: 0.2, ease: "easeOut" } }}
-                  >
-                    <WorkoutPost
-                      index={index}
-                      id={post.id}
-                      author={post.author.full_name || post.author.username}
-                      initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
-                      timeAgo={formatTimeAgo(post.created_at)}
-                      content={post.content}
-                      mediaUrl={post.media_url}
-                      likes={post.likes_count}
-                      comments={0}
-                      isLiked={post.has_liked}
-                      onLikeToggle={handleLikeToggle}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              <>
+                <AnimatePresence mode="popLayout">
+                  {posts.slice(0, visiblePostsCount).map((post, index) => (
+                    <motion.div
+                      key={post.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.4, type: "spring", bounce: 0.2, delay: index * 0.08 }}
+                      whileHover={{ y: -2, transition: { duration: 0.2, ease: "easeOut" } }}
+                    >
+                      <WorkoutPost
+                        index={index}
+                        id={post.id}
+                        author={post.author.full_name || post.author.username}
+                        initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
+                        timeAgo={formatTimeAgo(post.created_at)}
+                        content={post.content}
+                        mediaUrl={post.media_url}
+                        likes={post.likes_count}
+                        comments={0}
+                        isLiked={post.has_liked}
+                        onLikeToggle={handleLikeToggle}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {posts.length > visiblePostsCount && (
+                  <div className="flex justify-center mt-8">
+                    <Button 
+                      variant="outline" 
+                      className="rounded-full font-bold bg-white text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer shadow-sm transition-all hover:scale-105"
+                      onClick={() => setVisiblePostsCount(prev => prev + 5)}
+                    >
+                      View More Posts
+                    </Button>
+                  </div>
+                )}
+                {posts.length > 0 && visiblePostsCount >= posts.length && (
+                  <div className="text-center mt-8 text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                    You're all caught up!
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -509,71 +548,81 @@ export function Dashboard() {
 
             {/* Left Col - Stats */}
             <div className="space-y-6">
-              <Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
-                <Meteors number={18} className="before:from-primary bg-primary shadow-[0_0_0_1px_#ffffff20]" />
-                <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
-                <CardContent className="p-6 relative z-10">
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                      <Flame className="w-6 h-6 text-primary" />
+              <GlowingCard innerClassName="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                <Card className="border-0 bg-transparent text-white overflow-hidden relative shadow-none h-full w-full">
+                  <Meteors number={18} className="before:from-primary bg-primary shadow-[0_0_0_1px_#ffffff20]" />
+                  <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
+                  <CardContent className="p-6 relative z-10">
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                        <Flame className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
+                        <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
-                      <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </GlowingCard>
 
-              <Card className="border-slate-200">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-primary" />
-                    XP Progress
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
-                  <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
-                </CardContent>
-              </Card>
+              <GlowingCard>
+                <Card className="border-0 shadow-none h-full w-full">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-primary" />
+                      XP Progress
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
+                    <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
+                  </CardContent>
+                </Card>
+              </GlowingCard>
             </div>
 
             {/* Middle Col - More Stats & Leaderboard */}
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <Card className="border-slate-200 text-center p-4">
-                  <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
-                </Card>
-                <Card className="border-slate-200 text-center p-4">
-                  <Target className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
-                </Card>
+                <GlowingCard>
+                  <Card className="border-0 shadow-none text-center p-4 h-full w-full">
+                    <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
+                  </Card>
+                </GlowingCard>
+                <GlowingCard>
+                  <Card className="border-0 shadow-none text-center p-4 h-full w-full">
+                    <Target className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
+                  </Card>
+                </GlowingCard>
               </div>
-              <Card className="border-slate-200 mt-8 bg-slate-50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-2">
-                  {[
-                    { rank: 1, name: "Vikas M.", xp: "9,800" },
-                    { rank: 2, name: "Arjun P.", xp: "8,400" },
-                    { rank: 3, name: "Kiran M.", xp: "7,900" }
-                  ].map((user) => (
-                    <div key={user.rank} className="flex items-center gap-3">
-                      <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
-                      <Avatar className="w-8 h-8 flex-shrink-0">
-                        <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
-                      <div className="text-xs font-bold text-slate-500">{user.xp}</div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+              <GlowingCard className="mt-8" innerClassName="bg-slate-50">
+                <Card className="border-0 shadow-none bg-transparent h-full w-full">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-2">
+                    {[
+                      { rank: 1, name: "Vikas M.", xp: "9,800" },
+                      { rank: 2, name: "Arjun P.", xp: "8,400" },
+                      { rank: 3, name: "Kiran M.", xp: "7,900" }
+                    ].map((user) => (
+                      <div key={user.rank} className="flex items-center gap-3">
+                        <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                          <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
+                        <div className="text-xs font-bold text-slate-500">{user.xp}</div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </GlowingCard>
             </div>
 
             {/* Right Col - Recommendations */}
@@ -589,20 +638,25 @@ export function Dashboard() {
                 {nearbyLoading ? (
                   <div className="text-center py-4 text-xs text-slate-400">Loading partners...</div>
                 ) : nearbyUsers.length === 0 ? (
-                  <div className="text-slate-500 text-xs font-medium bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    Set location in profile to find nearby workout partners.
-                  </div>
+                  <GlowingCard innerClassName="bg-slate-50">
+                    <div className="text-slate-500 text-xs font-medium p-4 h-full w-full">
+                      Set location in profile to find nearby workout partners.
+                    </div>
+                  </GlowingCard>
                 ) : (
                   nearbyUsers.map(u => (
-                    <UserCard
-                      key={u.id}
-                      name={u.full_name || u.username}
-                      initials={u.full_name ? u.full_name.charAt(0).toUpperCase() : u.username.charAt(0).toUpperCase()}
-                      level={u.level}
-                      distance={`${u.distance_km} km`}
-                      tags={[u.gym_name || "Gym Athlete"]}
-                      active={u.current_streak > 0}
-                    />
+                    <GlowingCard key={u.id} innerClassName="bg-white">
+                      <div className="border-0 p-0 shadow-none h-full w-full">
+                        <UserCard
+                          name={u.full_name || u.username}
+                          initials={u.full_name ? u.full_name.charAt(0).toUpperCase() : u.username.charAt(0).toUpperCase()}
+                          level={u.level}
+                          distance={`${u.distance_km} km`}
+                          tags={[u.gym_name || "Gym Athlete"]}
+                          active={u.current_streak > 0}
+                        />
+                      </div>
+                    </GlowingCard>
                   ))
                 )}
               </div>
