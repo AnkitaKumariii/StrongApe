@@ -3,6 +3,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 interface WorkoutPostProps {
   id: number
   author: string
@@ -17,6 +19,10 @@ interface WorkoutPostProps {
 }
 
 export function WorkoutPost({ id, author, initials, timeAgo, content, mediaUrl, likes, comments, isLiked, onLikeToggle }: WorkoutPostProps) {
+  const fullMediaUrl = mediaUrl
+    ? (mediaUrl.startsWith("http") ? mediaUrl : `${BASE_URL}${mediaUrl}`)
+    : undefined;
+
   return (
     <Card className="border-slate-200">
       <CardHeader className="p-4 pb-2 flex flex-row items-center gap-3">
@@ -35,10 +41,9 @@ export function WorkoutPost({ id, author, initials, timeAgo, content, mediaUrl, 
       <CardContent className="p-4 pt-2">
         <p className="text-slate-700 text-sm leading-relaxed mb-3">{content}</p>
         
-        {mediaUrl && (
-          <div className="rounded-xl overflow-hidden bg-slate-100 border border-slate-200 aspect-video mb-2 flex items-center justify-center">
-            {/* Placeholder for actual image */}
-            <div className="text-slate-400 font-medium text-sm">Media Placeholder</div>
+        {fullMediaUrl && (
+          <div className="rounded-xl overflow-hidden bg-slate-50 border border-slate-200 mb-2 max-h-96 flex items-center justify-center">
+            <img src={fullMediaUrl} alt="Post media" className="w-full h-auto object-cover max-h-96" />
           </div>
         )}
       </CardContent>

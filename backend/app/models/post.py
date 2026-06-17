@@ -11,6 +11,7 @@ class Post(Base):
     content = Column(Text, nullable=False)
     post_type = Column(String, default="regular", nullable=False)  # 'regular', 'check_in', 'badge_unlocked'
     post_metadata = Column(JSON, nullable=True) # E.g., {'streak': 25, 'xp': 200, 'badge': 'Iron Consistency'}
+    media_url = Column(String, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

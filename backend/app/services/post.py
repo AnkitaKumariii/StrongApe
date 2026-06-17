@@ -15,7 +15,8 @@ class PostService:
             user_id=user_id,
             content=obj_in.content,
             post_type=obj_in.post_type,
-            post_metadata=obj_in.post_metadata
+            post_metadata=obj_in.post_metadata,
+            media_url=obj_in.media_url
         )
         db.add(db_post)
         await db.commit()
@@ -52,6 +53,7 @@ class PostService:
                 "content": post.content,
                 "post_type": post.post_type,
                 "post_metadata": post.post_metadata,
+                "media_url": post.media_url,
                 "created_at": post.created_at,
                 "author": post.author,
                 "likes_count": likes_count,

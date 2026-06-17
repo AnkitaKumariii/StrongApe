@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
@@ -67,8 +67,31 @@ export function Dashboard() {
   const [postContent, setPostContent] = useState("");
   const [postSubmitting, setPostSubmitting] = useState(false);
 
+  // File Upload States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [nearbyLoading, setNearbyLoading] = useState(true);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!validTypes.includes(file.type) || !["jpg", "jpeg", "png"].includes(ext || "")) {
+        setFileError("Only JPG and PNG files are allowed.");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   // Log Workout Modal States
   const [isLogWorkoutOpen, setIsLogWorkoutOpen] = useState(false);
@@ -109,19 +132,34 @@ export function Dashboard() {
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postContent.trim()) return;
+    if (!postContent.trim() && !selectedFile) return;
 
     setPostSubmitting(true);
+    setFileError(null);
     try {
+      let mediaUrl = undefined;
+      
+      if (selectedFile) {
+        // Upload the file first
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const uploadRes = await api.post<{ image_url: string }>("/api/posts/upload-image", formData);
+        mediaUrl = uploadRes.image_url;
+      }
+
       const newPost = await api.post<Post>("/api/posts", {
         content: postContent,
-        post_type: "regular"
+        post_type: "regular",
+        media_url: mediaUrl
       });
       // Prepend the new post locally to avoid full page refetch
       setPosts([newPost, ...posts]);
       setPostContent("");
-    } catch (err) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    } catch (err: any) {
       console.error("Failed to create post:", err);
+      setFileError(err.message || "Failed to create post.");
     } finally {
       setPostSubmitting(false);
     }
@@ -268,17 +306,51 @@ export function Dashboard() {
                     className="border-none shadow-none text-base focus-visible:ring-0 px-0"
                     value={postContent}
                     onChange={(e) => setPostContent(e.target.value)}
-                    required
                   />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    accept="image/png, image/jpeg, image/jpg" 
+                    style={{ display: "none" }} 
+                    onChange={handleFileChange} 
+                  />
+                  {previewUrl && (
+                    <div className="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2 max-w-xs group">
+                      <img src={previewUrl} alt="Preview" className="w-full h-auto object-cover max-h-48" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setPreviewUrl(null);
+                        }}
+                        className="absolute top-2 right-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full p-1 cursor-pointer transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {fileError && (
+                    <p className="text-xs font-bold text-red-500 mt-1">{fileError}</p>
+                  )}
                   <div className="flex justify-between items-center pt-2 border-t border-slate-100">
                     <div className="flex gap-2">
-                      <Button type="button" variant="ghost" size="sm" className="text-slate-500 rounded-full font-medium">Photo</Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-slate-500 rounded-full font-medium cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Photo
+                      </Button>
                       <Button type="button" variant="ghost" size="sm" className="text-slate-500 rounded-full font-medium">Routine</Button>
                     </div>
                     <Button 
                       type="submit" 
                       className="rounded-full font-bold px-6 cursor-pointer" 
-                      disabled={postSubmitting || !postContent.trim()}
+                      disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
                     >
                       {postSubmitting ? "Posting..." : "Post"}
                     </Button>
@@ -313,8 +385,9 @@ export function Dashboard() {
                   initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()} 
                   timeAgo={formatTimeAgo(post.created_at)} 
                   content={post.content} 
+                  mediaUrl={post.media_url}
                   likes={post.likes_count} 
-                  comments={0} // Backend doesn't support comments directly yet, defaulting to 0
+                  comments={0}
                   isLiked={post.has_liked}
                   onLikeToggle={handleLikeToggle}
                 />
