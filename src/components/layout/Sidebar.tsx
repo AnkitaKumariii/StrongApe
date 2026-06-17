@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Home, Users, MapPin, MessageSquare, Award, LogOut } from "lucide-react"
+import { Home, Users, MapPin, MessageSquare, Award, LogOut, Bell, Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
@@ -12,6 +12,20 @@ export function Sidebar() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [theme, setTheme] = useState<"light" | "dark">(
+    () => (localStorage.getItem("theme") as "light" | "dark") || "light"
+  )
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+    localStorage.setItem("theme", theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme(prev => prev === "light" ? "dark" : "light")
 
   const dockItems: DockItemData[] = [
     { 
@@ -87,6 +101,23 @@ export function Sidebar() {
       </nav>
 
       <div className={cn("p-4 border-t border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col gap-2 shrink-0")}>
+        <div className={cn("flex gap-2 w-full", isExpanded ? "flex-row justify-between" : "flex-col")}>
+          <button
+            className={cn("relative flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl transition-colors shrink-0", isExpanded ? "w-1/2 h-10" : "w-10 h-10")}
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-white dark:border-slate-900"></span>
+          </button>
+          <button
+            onClick={toggleTheme}
+            className={cn("flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl transition-colors shrink-0", isExpanded ? "w-1/2 h-10" : "w-10 h-10")}
+            title="Toggle theme"
+          >
+            {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+        </div>
+        
         <button 
           onClick={() => navigate("/profile")}
           className={cn("flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors w-full rounded-xl overflow-hidden", isExpanded ? "gap-3 p-3" : "justify-center p-2")}

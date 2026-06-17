@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 
 export function Landing() {
   const { login, register } = useAuth();
-  
+
   // Dialog Open States
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -71,7 +71,7 @@ export function Landing() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
     // Mark all as touched on submit
     setTouched({
       fullName: true,
@@ -104,8 +104,8 @@ export function Landing() {
           <button onClick={() => { setIsLoginOpen(false); setIsRegisterOpen(false); }} className="flex items-center gap-2 font-black text-2xl text-slate-900 tracking-tight bg-transparent border-none cursor-pointer">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0"/>
-                <path d="M3 19c0-4 9-4 9-4s9 0 9 4"/>
+                <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0" />
+                <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
               </svg>
             </div>
             StrongApe
@@ -135,20 +135,20 @@ export function Landing() {
         {/* Hero */}
         <section className="pt-48 pb-32 px-4 flex flex-col items-center text-center relative max-w-5xl mx-auto">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent blur-3xl"></div>
-          
+
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-primary font-bold text-sm mb-12">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             Now in beta — join 12,000+ members
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-tight mb-8 text-slate-900">
             Train Together. <span className="text-primary">Grow Stronger.</span>
           </h1>
-          
+
           <p className="text-xl text-slate-500 max-w-2xl mb-12 font-medium leading-relaxed">
             Find gym partners near you, build consistency through streaks and challenges, and be part of a fitness community that keeps you accountable.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center">
             <Button
               onClick={() => { resetForm(); setIsRegisterOpen(true); }}
@@ -282,9 +282,8 @@ export function Landing() {
                   setTouched(prev => ({ ...prev, fullName: true }));
                 }}
                 onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
-                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
-                  touched.fullName && !isFullNameValid ? "border-red-500 focus-visible:ring-red-500" : ""
-                }`}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${touched.fullName && !isFullNameValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
                 required
               />
               {touched.fullName && !isFullNameValid && (
@@ -302,14 +301,12 @@ export function Landing() {
                   setTouched(prev => ({ ...prev, username: true }));
                 }}
                 onBlur={() => setTouched(prev => ({ ...prev, username: true }))}
-                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
-                  touched.username && !isUsernameValid ? "border-red-500 focus-visible:ring-red-500" : ""
-                }`}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${touched.username && !isUsernameValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
                 required
               />
-              <p className={`text-xs font-bold mt-1 ${
-                touched.username && !isUsernameValid ? "text-red-500" : "text-slate-400"
-              }`}>
+              <p className={`text-xs font-bold mt-1 ${touched.username && !isUsernameValid ? "text-red-500" : "text-slate-400"
+                }`}>
                 Must be at least 3 characters.
               </p>
             </div>
@@ -324,9 +321,8 @@ export function Landing() {
                   setTouched(prev => ({ ...prev, email: true }));
                 }}
                 onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
-                  touched.email && !isEmailValid ? "border-red-500 focus-visible:ring-red-500" : ""
-                }`}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${touched.email && !isEmailValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
                 required
               />
               {touched.email && !isEmailValid && (
@@ -344,14 +340,12 @@ export function Landing() {
                   setTouched(prev => ({ ...prev, password: true }));
                 }}
                 onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
-                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
-                  touched.password && !isPasswordValid ? "border-red-500 focus-visible:ring-red-500" : ""
-                }`}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${touched.password && !isPasswordValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                  }`}
                 required
               />
-              <p className={`text-xs font-bold mt-1 ${
-                touched.password && !isPasswordValid ? "text-red-500" : "text-slate-400"
-              }`}>
+              <p className={`text-xs font-bold mt-1 ${touched.password && !isPasswordValid ? "text-red-500" : "text-slate-400"
+                }`}>
                 Must be at least 6 characters.
               </p>
             </div>
