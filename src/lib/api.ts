@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export class APIError extends Error {
   status: number;
@@ -18,12 +18,19 @@ async function request<T>(
 ): Promise<T> {
   const token = localStorage.getItem("token");
   
-  const headers = new Headers(options.headers);
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  const headers: Record<string, string> = {};
+  if (options.headers) {
+    Object.entries(options.headers).forEach(([key, value]) => {
+      headers[key] = value as string;
+    });
   }
-  if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
+  if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {

@@ -12,10 +12,9 @@ import uuid
 
 router = APIRouter()
 
-@router.post("/upload-image")
+@router.post("/attach-media")
 async def upload_image(
-    file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user)
+    file: UploadFile = File(...)
 ):
     # Validate extension and content type
     allowed_types = ["image/jpeg", "image/png"]

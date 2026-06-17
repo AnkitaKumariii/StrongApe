@@ -5,12 +5,13 @@ import { UserCard } from "@/components/domain/UserCard"
 import { WorkoutPost } from "@/components/domain/WorkoutPost"
 import { FitnessProfileSetup } from "@/components/domain/FitnessProfileSetup"
 import { EncryptedText } from "@/components/ui/encrypted-text"
+import { Meteors } from "@/components/ui/meteors"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Trophy, Activity, Target, Flame } from "lucide-react"
+import { Trophy, Activity, Target, Flame, Dumbbell, ScanLine } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 
@@ -61,11 +62,11 @@ function formatTimeAgo(dateStr: string) {
 
 export function Dashboard() {
   const { user, refreshProfile } = useAuth();
-  
+
   // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
-  
+
   const [postContent, setPostContent] = useState("");
   const [postSubmitting, setPostSubmitting] = useState(false);
 
@@ -140,12 +141,12 @@ export function Dashboard() {
     setFileError(null);
     try {
       let mediaUrl = undefined;
-      
+
       if (selectedFile) {
         // Upload the file first
         const formData = new FormData();
         formData.append("file", selectedFile);
-        const uploadRes = await api.post<{ image_url: string }>("/api/posts/upload-image", formData);
+        const uploadRes = await api.post<{ image_url: string }>("/api/posts/attach-media", formData);
         mediaUrl = uploadRes.image_url;
       }
 
@@ -222,6 +223,7 @@ export function Dashboard() {
     <Layout>
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-blue-400 p-8 md:p-12 mb-8 shadow-lg">
+        <Meteors number={25} className="before:from-white bg-white shadow-[0_0_0_1px_#ffffff50]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
@@ -251,11 +253,51 @@ export function Dashboard() {
 
       {!user?.settings?.fitness_profile && <FitnessProfileSetup />}
 
-            <div className="flex flex-col gap-12 max-w-4xl mx-auto w-full">
-        
+      {/* Features Quick Links */}
+      <div className="bg-slate-900 rounded-3xl p-8 mb-12 shadow-lg border border-slate-800">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
+            Everything You Need for <span className="text-primary">Fitness Success</span>
+          </h2>
+          <p className="text-sm text-slate-400 max-w-xl mx-auto font-medium">
+            This comprehensive platform combines cutting-edge AI technology with proven fitness science to deliver results that exceed your expectations.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Workout Routines */}
+          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
+                <Dumbbell className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Workout Routines</h3>
+            </div>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              Access scientifically-designed workout plans that adapt to your fitness level and objectives.
+            </p>
+          </div>
+
+          {/* Food Scanner */}
+          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
+                <ScanLine className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Food Scanner</h3>
+            </div>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              Scan your meals to get instant nutritional analysis and track your dietary intake effortlessly.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-12 max-w-4xl mx-auto w-full">
+
         {/* Top Section - Feed */}
         <div className="space-y-6 w-full">
-<Card className="border-slate-200 shadow-sm">
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="p-4 flex gap-4">
               <Avatar className="w-10 h-10 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-white font-bold">
@@ -264,18 +306,18 @@ export function Dashboard() {
               </Avatar>
               <div className="flex-1">
                 <form onSubmit={handleCreatePost} className="space-y-4">
-                  <Input 
-                    placeholder="Share your workout or ask the community..." 
+                  <Input
+                    placeholder="Share your workout or ask the community..."
                     className="border-none shadow-none text-base focus-visible:ring-0 px-0"
                     value={postContent}
                     onChange={(e) => setPostContent(e.target.value)}
                   />
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    accept="image/png, image/jpeg, image/jpg" 
-                    style={{ display: "none" }} 
-                    onChange={handleFileChange} 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/png, image/jpeg, image/jpg"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
                   />
                   {previewUrl && (
                     <div className="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2 max-w-xs group">
@@ -299,10 +341,10 @@ export function Dashboard() {
                   )}
                   <div className="flex justify-between items-center pt-2 border-t border-slate-100">
                     <div className="flex gap-2">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         className="text-slate-500 rounded-full font-medium cursor-pointer"
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -310,9 +352,9 @@ export function Dashboard() {
                       </Button>
                       <Button type="button" variant="ghost" size="sm" className="text-slate-500 rounded-full font-medium">Routine</Button>
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="rounded-full font-bold px-6 cursor-pointer" 
+                    <Button
+                      type="submit"
+                      className="rounded-full font-bold px-6 cursor-pointer"
                       disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
                     >
                       {postSubmitting ? "Posting..." : "Post"}
@@ -341,15 +383,15 @@ export function Dashboard() {
               </Card>
             ) : (
               posts.map((post) => (
-                <WorkoutPost 
+                <WorkoutPost
                   key={post.id}
                   id={post.id}
-                  author={post.author.full_name || post.author.username} 
-                  initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()} 
-                  timeAgo={formatTimeAgo(post.created_at)} 
-                  content={post.content} 
+                  author={post.author.full_name || post.author.username}
+                  initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
+                  timeAgo={formatTimeAgo(post.created_at)}
+                  content={post.content}
                   mediaUrl={post.media_url}
-                  likes={post.likes_count} 
+                  likes={post.likes_count}
                   comments={0}
                   isLiked={post.has_liked}
                   onLikeToggle={handleLikeToggle}
@@ -362,105 +404,106 @@ export function Dashboard() {
         {/* Bottom Section - Stats & Recommendations */}
         <div className="w-full">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Left Col - Stats */}
             <div className="space-y-6">
-<Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                  <Flame className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden relative">
+                <Meteors number={18} className="before:from-primary bg-primary shadow-[0_0_0_1px_#ffffff20]" />
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
+                <CardContent className="p-6 relative z-10">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                      <Flame className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-3xl font-black">{user?.current_streak || 0}<span className="text-base text-primary ml-1">days</span></div>
+                      <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Streak</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-primary" />
-                XP Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
-              <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
-            </CardContent>
-          </Card>
+              <Card className="border-slate-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-primary" />
+                    XP Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <XPProgress currentXP={currentXP} maxXP={maxXP} level={level} />
+                  <div className="text-right text-[10px] text-slate-400 font-bold mt-1 uppercase">Total: {user?.xp || 0} XP</div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Middle Col - More Stats & Leaderboard */}
             <div className="space-y-6">
-<div className="grid grid-cols-2 gap-4">
-            <Card className="border-slate-200 text-center p-4">
-              <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
-            </Card>
-            <Card className="border-slate-200 text-center p-4">
-              <Target className="w-6 h-6 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
-            </Card>
-          </div>
-<Card className="border-slate-200 mt-8 bg-slate-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
-              {[
-                { rank: 1, name: "Vikas M.", xp: "9,800" },
-                { rank: 2, name: "Arjun P.", xp: "8,400" },
-                { rank: 3, name: "Kiran M.", xp: "7,900" }
-              ].map((user) => (
-                <div key={user.rank} className="flex items-center gap-3">
-                  <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
-                  <div className="text-xs font-bold text-slate-500">{user.xp}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="border-slate-200 text-center p-4">
+                  <Activity className="w-6 h-6 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-black text-slate-900">{user?.level || 1}</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase">Ape Level</div>
+                </Card>
+                <Card className="border-slate-200 text-center p-4">
+                  <Target className="w-6 h-6 text-primary mx-auto mb-2" />
+                  <div className="text-2xl font-black text-slate-900">{user?.settings?.notifications ? "Active" : "Muted"}</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase">Alerts</div>
+                </Card>
+              </div>
+              <Card className="border-slate-200 mt-8 bg-slate-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900">Leaderboard Preview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-2">
+                  {[
+                    { rank: 1, name: "Vikas M.", xp: "9,800" },
+                    { rank: 2, name: "Arjun P.", xp: "8,400" },
+                    { rank: 3, name: "Kiran M.", xp: "7,900" }
+                  ].map((user) => (
+                    <div key={user.rank} className="flex items-center gap-3">
+                      <div className={`w-6 text-center font-black ${user.rank === 1 ? 'text-primary' : user.rank === 2 ? 'text-slate-400' : 'text-slate-600'}`}>{user.rank}</div>
+                      <Avatar className="w-8 h-8 flex-shrink-0">
+                        <AvatarFallback className="bg-slate-200 text-slate-500 font-bold text-xs">{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="font-bold text-sm text-slate-900 flex-1">{user.name}</div>
+                      <div className="text-xs font-bold text-slate-500">{user.xp}</div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Right Col - Recommendations */}
             <div className="space-y-6">
-<div className="flex items-center justify-between">
-            <h2 className="font-bold text-sm text-slate-900 uppercase tracking-wider">Nearby Partners</h2>
-            <Button asChild variant="link" className="text-xs font-bold text-primary p-0 h-auto">
-              <a href="/nearby">See all</a>
-            </Button>
-          </div>
-          
-          <div className="space-y-3">
-            {nearbyLoading ? (
-              <div className="text-center py-4 text-xs text-slate-400">Loading partners...</div>
-            ) : nearbyUsers.length === 0 ? (
-              <div className="text-slate-500 text-xs font-medium bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                Set location in profile to find nearby workout partners.
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-sm text-slate-900 uppercase tracking-wider">Nearby Partners</h2>
+                <Button asChild variant="link" className="text-xs font-bold text-primary p-0 h-auto">
+                  <a href="/nearby">See all</a>
+                </Button>
               </div>
-            ) : (
-              nearbyUsers.map(u => (
-                <UserCard 
-                  key={u.id}
-                  name={u.full_name || u.username} 
-                  initials={u.full_name ? u.full_name.charAt(0).toUpperCase() : u.username.charAt(0).toUpperCase()} 
-                  level={u.level} 
-                  distance={`${u.distance_km} km`} 
-                  tags={[u.gym_name || "Gym Athlete"]} 
-                  active={u.current_streak > 0} 
-                />
-              ))
-            )}
-          </div>
+
+              <div className="space-y-3">
+                {nearbyLoading ? (
+                  <div className="text-center py-4 text-xs text-slate-400">Loading partners...</div>
+                ) : nearbyUsers.length === 0 ? (
+                  <div className="text-slate-500 text-xs font-medium bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    Set location in profile to find nearby workout partners.
+                  </div>
+                ) : (
+                  nearbyUsers.map(u => (
+                    <UserCard
+                      key={u.id}
+                      name={u.full_name || u.username}
+                      initials={u.full_name ? u.full_name.charAt(0).toUpperCase() : u.username.charAt(0).toUpperCase()}
+                      level={u.level}
+                      distance={`${u.distance_km} km`}
+                      tags={[u.gym_name || "Gym Athlete"]}
+                      active={u.current_streak > 0}
+                    />
+                  ))
+                )}
+              </div>
             </div>
 
           </div>

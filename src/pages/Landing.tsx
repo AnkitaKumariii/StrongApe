@@ -192,8 +192,7 @@ export function Landing() {
               <div className="text-4xl md:text-5xl font-black text-white mb-2">94%</div>
               <div className="text-slate-400 font-semibold text-sm uppercase tracking-wider">Consistency Rate</div>
             </div>
-          </div>
-        </section>
+
       </main>
 
       {/* Login Dialog */}
