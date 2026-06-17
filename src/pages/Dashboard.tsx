@@ -14,6 +14,84 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Trophy, Activity, Target, Flame, Dumbbell, ScanLine } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
+import { motion, AnimatePresence } from "framer-motion"
+
+function PostSkeleton() {
+  return (
+    <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm mb-6 animate-pulse">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-slate-200 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 bg-slate-200 rounded w-1/4" />
+          <div className="h-2 bg-slate-100 rounded w-1/6" />
+        </div>
+      </div>
+      <div className="space-y-2 mb-4">
+        <div className="h-3 bg-slate-200 rounded w-full" />
+        <div className="h-3 bg-slate-200 rounded w-5/6" />
+        <div className="h-3 bg-slate-200 rounded w-4/6" />
+      </div>
+      <div className="h-48 bg-slate-100 rounded-xl w-full mb-4" />
+      <div className="flex gap-4 border-t border-slate-100 pt-3">
+        <div className="h-6 bg-slate-200 rounded w-12" />
+        <div className="h-6 bg-slate-200 rounded w-12" />
+      </div>
+    </div>
+  )
+}
+
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
+
+const people = [
+  {
+    id: 1,
+    name: "John Doe",
+    designation: "Powerlifter",
+    image:
+      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3387&q=80",
+    recentPost: "Just hit a new PR on the deadlift today! 405lbs for 3 reps! Let's go! 🏋️‍♂️🔥"
+  },
+  {
+    id: 2,
+    name: "Robert Johnson",
+    designation: "Calisthenics",
+    image:
+      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YXZhdGFyfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+    recentPost: "Finally unlocked the full planche after 6 months of training. Consistency is everything. 💪"
+  },
+  {
+    id: 3,
+    name: "Jane Smith",
+    designation: "CrossFit Athlete",
+    image:
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YXZhdGFyfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+    recentPost: "Murph challenge completed in 45:12! That was brutal but feeling amazing now. 🏃‍♀️💨"
+  },
+  {
+    id: 4,
+    name: "Emily Davis",
+    designation: "Yoga Instructor",
+    image:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    recentPost: "Morning flow session to start the day. Remember to focus on your breathing today! 🧘‍♀️✨"
+  },
+  {
+    id: 5,
+    name: "Tyler Durden",
+    designation: "Bodybuilder",
+    image:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80",
+    recentPost: "Chest day complete. The pump was unreal today. Eating 300g of protein to recover. 🦍🥩"
+  },
+  {
+    id: 6,
+    name: "Dora",
+    designation: "Marathon Runner",
+    image:
+      "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3534&q=80",
+    recentPost: "Just signed up for the Boston Marathon! Time to start the 16-week prep block. 🏃‍♀️🏅"
+  },
+];
 
 interface PostAuthor {
   id: number;
@@ -365,6 +443,14 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
+          {/* Active Community Members */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+            <h3 className="font-bold text-slate-900 mb-6 text-center">Active Community Members</h3>
+            <div className="flex flex-row items-center justify-center w-full">
+              <AnimatedTooltip items={people} />
+            </div>
+          </div>
+
           <div className="flex items-center justify-between pb-2">
             <h2 className="font-bold text-lg text-slate-900">Community Feed</h2>
             <div onClick={fetchFeed} className="text-sm font-semibold text-primary cursor-pointer hover:underline">Refresh</div>
@@ -372,7 +458,11 @@ export function Dashboard() {
 
           <div className="space-y-6">
             {feedLoading && posts.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 font-medium">Loading feed...</div>
+              <div className="space-y-0">
+                <PostSkeleton />
+                <PostSkeleton />
+                <PostSkeleton />
+              </div>
             ) : posts.length === 0 ? (
               <Card className="border-slate-200 text-center py-12 bg-slate-50/50">
                 <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
@@ -382,21 +472,33 @@ export function Dashboard() {
                 <p className="text-slate-500 font-medium mb-6">Create the very first post to start the conversation!</p>
               </Card>
             ) : (
-              posts.map((post) => (
-                <WorkoutPost
-                  key={post.id}
-                  id={post.id}
-                  author={post.author.full_name || post.author.username}
-                  initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
-                  timeAgo={formatTimeAgo(post.created_at)}
-                  content={post.content}
-                  mediaUrl={post.media_url}
-                  likes={post.likes_count}
-                  comments={0}
-                  isLiked={post.has_liked}
-                  onLikeToggle={handleLikeToggle}
-                />
-              ))
+              <AnimatePresence mode="popLayout">
+                {posts.map((post, index) => (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.4, type: "spring", bounce: 0.2, delay: index * 0.08 }}
+                    whileHover={{ y: -2, transition: { duration: 0.2, ease: "easeOut" } }}
+                  >
+                    <WorkoutPost
+                      index={index}
+                      id={post.id}
+                      author={post.author.full_name || post.author.username}
+                      initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
+                      timeAgo={formatTimeAgo(post.created_at)}
+                      content={post.content}
+                      mediaUrl={post.media_url}
+                      likes={post.likes_count}
+                      comments={0}
+                      isLiked={post.has_liked}
+                      onLikeToggle={handleLikeToggle}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             )}
           </div>
         </div>
