@@ -11,6 +11,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Link } from "react-router-dom"
 import { Trophy, Activity, Target, Flame, Dumbbell, ScanLine } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
@@ -365,7 +366,10 @@ export function Dashboard() {
 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Workout Routines */}
-          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer">
+          <Link
+            to="/workout-routines"
+            className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer block no-underline"
+          >
             <div className="flex items-center gap-4 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
                 <Dumbbell className="w-5 h-5 text-primary" />
@@ -375,10 +379,13 @@ export function Dashboard() {
             <p className="text-slate-400 text-sm font-medium leading-relaxed">
               Access scientifically-designed workout plans that adapt to your fitness level and objectives.
             </p>
-          </div>
+          </Link>
 
           {/* Food Scanner */}
-          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer">
+          <Link
+            to="/food-scanner"
+            className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer block no-underline"
+          >
             <div className="flex items-center gap-4 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
                 <ScanLine className="w-5 h-5 text-primary" />
@@ -388,7 +395,7 @@ export function Dashboard() {
             <p className="text-slate-400 text-sm font-medium leading-relaxed">
               Scan your meals to get instant nutritional analysis and track your dietary intake effortlessly.
             </p>
-          </div>
+          </Link>
         </div>
       </div>
 
