@@ -19,9 +19,25 @@ export function Landing() {
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
 
+  // Form Field Touched States
+  const [touched, setTouched] = useState({
+    fullName: false,
+    username: false,
+    email: false,
+    password: false,
+  });
+
   // UI States
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Client-side Validations
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isUsernameValid = username.trim().length >= 3;
+  const isFullNameValid = fullName.trim().length >= 1;
+  const isPasswordValid = password.length >= 6;
+
+  const isFormValid = isEmailValid && isUsernameValid && isFullNameValid && isPasswordValid;
 
   const resetForm = () => {
     setEmail("");
@@ -29,6 +45,12 @@ export function Landing() {
     setFullName("");
     setPassword("");
     setError("");
+    setTouched({
+      fullName: false,
+      username: false,
+      email: false,
+      password: false,
+    });
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -49,10 +71,22 @@ export function Landing() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
+    // Mark all as touched on submit
+    setTouched({
+      fullName: true,
+      username: true,
+      email: true,
+      password: true,
+    });
+
+    if (!isFormValid) {
+      setError("Please fix the validation errors before submitting.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      if (!email || !username || !fullName || !password) {
-        throw new Error("All fields are required.");
-      }
       await register(email, username, fullName, password);
       setIsRegisterOpen(false);
     } catch (err: any) {
@@ -233,57 +267,97 @@ export function Landing() {
           </DialogHeader>
           <form onSubmit={handleRegisterSubmit} className="space-y-4 mt-4">
             {error && (
-              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl">
+              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl animate-in fade-in slide-in-from-top-1 duration-200">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</label>
               <Input
                 type="text"
                 placeholder="Ankit Kumar"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="h-12 rounded-xl border-slate-200"
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setTouched(prev => ({ ...prev, fullName: true }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
+                  touched.fullName && !isFullNameValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                }`}
                 required
               />
+              {touched.fullName && !isFullNameValid && (
+                <p className="text-xs font-bold text-red-500 mt-1">Full Name is required.</p>
+              )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Username</label>
               <Input
                 type="text"
                 placeholder="ankit_strong"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="h-12 rounded-xl border-slate-200"
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setTouched(prev => ({ ...prev, username: true }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, username: true }))}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
+                  touched.username && !isUsernameValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                }`}
                 required
               />
+              <p className={`text-xs font-bold mt-1 ${
+                touched.username && !isUsernameValid ? "text-red-500" : "text-slate-400"
+              }`}>
+                Must be at least 3 characters.
+              </p>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</label>
               <Input
                 type="email"
                 placeholder="ankit@strongape.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl border-slate-200"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setTouched(prev => ({ ...prev, email: true }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
+                  touched.email && !isEmailValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                }`}
                 required
               />
+              {touched.email && !isEmailValid && (
+                <p className="text-xs font-bold text-red-500 mt-1">Please enter a valid email address.</p>
+              )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
               <Input
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl border-slate-200"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setTouched(prev => ({ ...prev, password: true }));
+                }}
+                onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                className={`h-12 rounded-xl border-slate-200 focus-visible:ring-primary ${
+                  touched.password && !isPasswordValid ? "border-red-500 focus-visible:ring-red-500" : ""
+                }`}
                 required
               />
+              <p className={`text-xs font-bold mt-1 ${
+                touched.password && !isPasswordValid ? "text-red-500" : "text-slate-400"
+              }`}>
+                Must be at least 6 characters.
+              </p>
             </div>
             <Button
               type="submit"
-              className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20 text-base"
+              className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20 text-base mt-2"
               disabled={loading}
             >
               {loading ? "Creating Account..." : "Create Account"}

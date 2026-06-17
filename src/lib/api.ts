@@ -38,7 +38,24 @@ async function request<T>(
     } catch {
       errorData = { detail: "An unknown error occurred" };
     }
-    const message = errorData.detail || errorData.message || response.statusText;
+    let message = response.statusText;
+    if (errorData && errorData.error) {
+      if (Array.isArray(errorData.error.details)) {
+        message = errorData.error.details
+          .map((d: any) => {
+            const field = d.loc ? d.loc[d.loc.length - 1] : "";
+            const formattedField = field ? field.charAt(0).toUpperCase() + field.slice(1).replace("_", " ") : "";
+            return formattedField ? `${formattedField}: ${d.msg}` : d.msg;
+          })
+          .join(", ");
+      } else {
+        message = errorData.error.message || message;
+      }
+    } else if (errorData.detail) {
+      message = typeof errorData.detail === "string" ? errorData.detail : JSON.stringify(errorData.detail);
+    } else if (errorData.message) {
+      message = errorData.message;
+    }
     throw new APIError(message, response.status, errorData);
   }
 
