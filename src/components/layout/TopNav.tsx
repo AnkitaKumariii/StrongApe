@@ -6,7 +6,7 @@ export function TopNav() {
   const { user } = useAuth()
   
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center px-4 lg:px-8 gap-4">
+    <header className="fixed top-0 right-0 left-[88px] h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center px-4 lg:px-8 gap-4">
       <div className="lg:hidden font-bold text-xl text-slate-900 tracking-tight">
         StrongApe
       </div>

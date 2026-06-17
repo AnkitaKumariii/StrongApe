@@ -1,121 +1,119 @@
-import { Link, useLocation } from "react-router-dom"
-import { Home, Users, MapPin, MessageSquare, Award, ChevronLeft, ChevronRight, LogOut } from "lucide-react"
+import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
+import { Home, Users, MapPin, MessageSquare, Award, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
+import { MagneticDock, type DockItemData } from "../../../sh"
+import { motion } from "framer-motion"
 
-const navItems = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: Users, label: "Communities", href: "/communities" },
-  { icon: MapPin, label: "Nearby Apes", href: "/nearby" },
-  { icon: MessageSquare, label: "Messages", href: "/messages", badge: "2" },
-  { icon: Award, label: "Leaderboard", href: "/leaderboard" },
-]
-
-interface SidebarProps {
-  isCollapsed?: boolean
-  onToggle?: () => void
-}
-
-export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
+export function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const dockItems: DockItemData[] = [
+    { 
+      id: "home", 
+      label: "Home", 
+      icon: <Home className="w-full h-full" />, 
+      onClick: () => navigate("/"),
+      isActive: location.pathname === "/"
+    },
+    { 
+      id: "communities", 
+      label: "Communities", 
+      icon: <Users className="w-full h-full" />, 
+      onClick: () => navigate("/communities"),
+      isActive: location.pathname === "/communities"
+    },
+    { 
+      id: "nearby", 
+      label: "Nearby Apes", 
+      icon: <MapPin className="w-full h-full" />, 
+      onClick: () => navigate("/nearby"),
+      isActive: location.pathname === "/nearby"
+    },
+    { 
+      id: "chat", 
+      label: "Messages", 
+      icon: <MessageSquare className="w-full h-full" />, 
+      onClick: () => navigate("/messages"),
+      isActive: location.pathname === "/messages",
+      badge: 2
+    },
+    { 
+      id: "leaderboard", 
+      label: "Leaderboard", 
+      icon: <Award className="w-full h-full" />, 
+      onClick: () => navigate("/leaderboard"),
+      isActive: location.pathname === "/leaderboard"
+    },
+  ]
 
   return (
-    <aside className={cn(
-      "fixed left-0 top-0 bottom-0 bg-white flex flex-col z-50 text-slate-900 border-r border-slate-200 transition-all duration-300",
-      isCollapsed ? "w-20" : "w-64"
-    )}>
-      {onToggle && (
-        <button
-          onClick={onToggle}
-          className="absolute -right-3 top-8 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 shadow-sm transition-colors z-50"
-        >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+    <motion.aside 
+      className={cn(
+        "fixed left-0 top-0 bottom-0 bg-white dark:bg-slate-900 flex flex-col z-[100] text-slate-900 dark:text-slate-100 border-r border-slate-200 dark:border-slate-800 transition-shadow",
+        isExpanded ? "shadow-2xl" : "shadow-sm"
       )}
-
-      <div className={cn("border-b border-slate-100 flex items-center", isCollapsed ? "p-4 justify-center" : "p-6 gap-3")}>
-        <div className="w-10 h-10 min-w-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
+      initial={{ width: 88 }}
+      animate={{ width: isExpanded ? 260 : 88 }}
+      onHoverStart={() => setIsExpanded(true)}
+      onHoverEnd={() => setIsExpanded(false)}
+      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      <div className={cn("border-b border-slate-100 dark:border-slate-800 flex items-center overflow-hidden h-[88px] shrink-0", isExpanded ? "p-6 gap-3" : "p-4 justify-center")}>
+        <div className="w-10 h-10 min-w-[40px] bg-primary rounded-xl flex items-center justify-center shrink-0">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0" />
             <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
           </svg>
         </div>
-        {!isCollapsed && <span className="font-bold text-xl text-slate-900 tracking-tight whitespace-nowrap overflow-hidden">StrongApe</span>}
+        {isExpanded && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-bold text-xl tracking-tight whitespace-nowrap">StrongApe</motion.span>}
       </div>
 
-      <nav className="flex-1 p-4 overflow-y-auto space-y-1">
-        {!isCollapsed && (
-          <div className="px-3 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
-            Main Menu
-          </div>
-        )}
-        {isCollapsed && <div className="h-4"></div>}
-
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              to={item.href}
-              title={isCollapsed ? item.label : undefined}
-              className={cn(
-                "relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
-                isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3",
-                isActive
-                  ? "bg-primary/10 text-primary border-l-2 border-primary"
-                  : "hover:bg-slate-50 hover:text-slate-900 text-slate-500 border-l-2 border-transparent"
-              )}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {!isCollapsed && <span className="whitespace-nowrap overflow-hidden">{item.label}</span>}
-              {!isCollapsed && item.badge && (
-                <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
-                  {item.badge}
-                </span>
-              )}
-              {isCollapsed && item.badge && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full"></span>
-              )}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 p-2 overflow-y-auto overflow-x-hidden flex flex-col">
+        <MagneticDock 
+          items={dockItems}
+          iconSize={48}
+          maxScale={1.3}
+          magneticDistance={150}
+          variant="transparent"
+          position="left"
+          isExpanded={isExpanded}
+        />
       </nav>
 
-      <div className={cn("p-4 border-t border-slate-100", isCollapsed ? "flex justify-center" : "")}>
-        <Link 
-          to="/profile" 
-          title={isCollapsed ? "Profile" : undefined}
-          className={cn("flex items-center hover:bg-slate-50 transition-colors w-full", isCollapsed ? "justify-center p-0 rounded-full" : "gap-3 p-3 rounded-xl")}
+      <div className={cn("p-4 border-t border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col gap-2 shrink-0")}>
+        <button 
+          onClick={() => navigate("/profile")}
+          className={cn("flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors w-full rounded-xl overflow-hidden", isExpanded ? "gap-3 p-3" : "justify-center p-2")}
         >
-          <Avatar className="shrink-0">
+          <Avatar className="shrink-0 w-10 h-10">
             <AvatarFallback className="bg-primary text-white font-bold">
               {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
             </AvatarFallback>
           </Avatar>
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <div className="text-sm font-semibold text-slate-900 truncate">
-                {user?.full_name || user?.username || "Ape"}
-              </div>
+          {isExpanded && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0 text-left">
+              <div className="text-sm font-semibold truncate">{user?.full_name || user?.username || "Ape"}</div>
               <div className="text-xs text-slate-500 truncate">Level {user?.level || 1}</div>
-            </div>
+            </motion.div>
           )}
-        </Link>
+        </button>
         <button
           onClick={logout}
-          title={isCollapsed ? "Log Out" : undefined}
           className={cn(
-            "flex items-center text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent",
-            isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3 text-sm font-medium"
+            "flex items-center text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent overflow-hidden",
+            isExpanded ? "gap-3 px-4 py-3 text-sm font-medium" : "justify-center p-3"
           )}
         >
           <LogOut className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span>Log Out</span>}
+          {isExpanded && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Log Out</motion.span>}
         </button>
       </div>
-    </aside>
+    </motion.aside>
   )
 }
-
