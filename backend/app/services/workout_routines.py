@@ -123,7 +123,7 @@ class WorkoutRoutinesService:
             diet_notes.append("Lactose intolerant")
         diet_notes_text = "; ".join(diet_notes) if diet_notes else "No special dietary restrictions"
 
-        return f"""Create a detailed {focus} workout for Day {day} based on this user's fitness profile:
+        return f"""Create a {focus} workout for Day {day} based on this user's fitness profile:
 
 User Profile:
 - Primary Goal: {goal_label}
@@ -136,21 +136,21 @@ User Profile:
 - Sugar Consumption: {sugar}
 
 Tailor exercise intensity, volume, and rest periods to match the user's goal, body metrics, and energy habits.
-If caffeine is low/none, include a slightly longer warm-up. If goal is weight loss, emphasize compound movements and cardio.
+Do NOT include any exercise descriptions, instructions, or guidelines. Provide ONLY the names and metadata.
 
 Provide the workout plan in this exact format:
 
 Warm-up:
-- [Exercise Name] | [Instructions]
-- [Exercise Name] | [Instructions]
+- [Exercise Name]
+- [Exercise Name]
 
 Main Routine:
-- [Exercise Name] | Sets: [X] | Reps: [X] | Rest: [Xs] | [Instructions]
-- [Exercise Name] | Sets: [X] | Reps: [X] | Rest: [Xs] | [Instructions]
+- [Exercise Name] | Sets: [X] | Reps: [X] | Rest: [Xs]
+- [Exercise Name] | Sets: [X] | Reps: [X] | Rest: [Xs]
 
 Cool-down:
-- [Exercise Name] | [Instructions]
-- [Exercise Name] | [Instructions]
+- [Exercise Name]
+- [Exercise Name]
 """
 
     def _parse_workout_response(self, content: str) -> dict[str, list[Exercise]]:
@@ -191,7 +191,6 @@ Cool-down:
                         "sets": "3",
                         "reps": "10-12",
                         "rest": "60s",
-                        "instructions": "",
                     }
                     for part in parts[1:]:
                         part_lower = part.lower().strip()
@@ -202,8 +201,6 @@ Cool-down:
                             exercise_data["reps"] = part.split(":")[-1].strip()
                         elif "rest:" in part_lower:
                             exercise_data["rest"] = part.split(":")[-1].strip()
-                        else:
-                            exercise_data["instructions"] = part
 
                     segments[current_section].append(
                         Exercise(
@@ -211,20 +208,15 @@ Cool-down:
                             sets=int(exercise_data["sets"]),
                             reps=exercise_data["reps"],
                             rest=exercise_data["rest"],
-                            instructions=exercise_data["instructions"],
                         )
                     )
                 else:
-                    instructions = (
-                        parts[1].strip() if len(parts) > 1 else "Perform at a comfortable pace"
-                    )
                     segments[current_section].append(
                         Exercise(
                             name=name,
                             sets=1,
                             reps="As needed",
                             rest="None",
-                            instructions=instructions,
                         )
                     )
             except Exception as exc:
@@ -239,7 +231,6 @@ Cool-down:
                         sets=1,
                         reps="As needed",
                         rest="None",
-                        instructions="Perform at a comfortable pace",
                     )
                 )
 

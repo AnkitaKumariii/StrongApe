@@ -34,7 +34,11 @@ export function WorkoutGallery() {
   return (
     <FlipGallery
       items={items}
-      heading="Meet Workout Routines"
+      heading={
+        <>
+          Create <span className="text-primary">AI Workout Routines</span>
+        </>
+      }
       subtitle="Hover over any routine to view its program details."
       chosenImageAlt="Selected workout routine"
       onTryOut={() => navigate("/workout-routines")}

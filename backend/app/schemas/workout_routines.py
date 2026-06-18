@@ -8,7 +8,6 @@ class Exercise(BaseModel):
     sets: int
     reps: str
     rest: str
-    instructions: str
 
 
 class WorkoutSegment(BaseModel):

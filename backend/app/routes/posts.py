@@ -23,7 +23,8 @@ async def upload_image(
         raise BadRequestException("Only JPG and PNG files are allowed.")
         
     # Ensure static directory exists
-    upload_dir = "app/static/uploads"
+    from app.core.config import settings
+    upload_dir = os.path.join(settings.STATIC_DIR, "uploads")
     os.makedirs(upload_dir, exist_ok=True)
     
     # Generate unique filename

@@ -36,10 +36,10 @@ export function ApeGallery() {
       items={items}
       heading={
         <>
-          Meet the <span className="text-primary">Food Scanner</span>
+          Meet the <span className="text-primary">AI Food Scanner</span>
         </>
       }
-      subtitle="Hover over any food to view its nutritional info."
+      subtitle="Scan your food to get its nutritional value."
       chosenImageAlt="Selected food item"
       onTryOut={() => navigate("/food-scanner")}
     />

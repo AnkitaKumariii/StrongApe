@@ -168,7 +168,7 @@ export function FoodScanner() {
             {loading && (
               <div className="flex flex-col items-center justify-center py-8 gap-3">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-slate-500 font-medium text-sm">Analyzing your food with Gemini AI...</p>
+                <p className="text-slate-500 font-medium text-sm">Analyzing your food with StrongApe...</p>
               </div>
             )}
 

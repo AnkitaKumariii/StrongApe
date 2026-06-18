@@ -33,8 +33,9 @@ app.include_router(api_router, prefix="/api")
 # Mount static directory for uploads
 from fastapi.staticfiles import StaticFiles
 import os
-os.makedirs("app/static/uploads", exist_ok=True)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+uploads_dir = os.path.join(settings.STATIC_DIR, "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=settings.STATIC_DIR), name="static")
 
 # Register global error handlers
 register_error_handlers(app)

@@ -5,6 +5,7 @@ from pydantic import Field
 _BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _DEFAULT_SQLITE_PATH = os.path.join(_BACKEND_DIR, "strongape.db").replace("\\", "/")
 _DEFAULT_DATABASE_URL = f"sqlite+aiosqlite:///{_DEFAULT_SQLITE_PATH}"
+_DEFAULT_STATIC_DIR = os.path.join(_BACKEND_DIR, "app", "static").replace("\\", "/")
 
 class Settings(BaseSettings):
     APP_NAME: str = "StrongApe API"
@@ -17,6 +18,7 @@ class Settings(BaseSettings):
     
     # DB URL — SQLite by default for local dev; use PostgreSQL in production via .env
     DATABASE_URL: str = Field(default=_DEFAULT_DATABASE_URL)
+    STATIC_DIR: str = Field(default=_DEFAULT_STATIC_DIR)
 
     # Google Gemini (Food Scanner & Workout Routines)
     GEMINI_API_KEY: str = Field(default="")

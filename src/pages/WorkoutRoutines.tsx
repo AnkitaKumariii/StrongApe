@@ -22,7 +22,6 @@ interface Exercise {
   sets: number
   reps: string
   rest: string
-  instructions: string
 }
 
 interface WorkoutSegment {
@@ -55,9 +54,9 @@ const GOAL_LABELS: Record<string, string> = {
 function ExerciseList({ exercises, showSets }: { exercises: Exercise[]; showSets?: boolean }) {
   return (
     <ul className="space-y-3">
-      {exercises.map((exercise) => (
+      {exercises.map((exercise, index) => (
         <li
-          key={`${exercise.name}-${exercise.instructions}`}
+          key={`${exercise.name}-${index}`}
           className="bg-slate-50 border border-slate-100 rounded-xl p-4"
         >
           <p className="font-bold text-slate-900">{exercise.name}</p>
@@ -65,9 +64,6 @@ function ExerciseList({ exercises, showSets }: { exercises: Exercise[]; showSets
             <p className="text-xs font-semibold text-primary mt-1">
               {exercise.sets} sets × {exercise.reps} reps · Rest {exercise.rest}
             </p>
-          )}
-          {exercise.instructions && (
-            <p className="text-sm text-slate-500 font-medium mt-2">{exercise.instructions}</p>
           )}
         </li>
       ))}
@@ -265,7 +261,7 @@ export function WorkoutRoutines() {
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
                 <p className="text-slate-500 font-medium text-sm">
-                  Building your personalized 3-day routine with Gemini AI...
+                  Building your personalized 3-day routine with StrongApe...
                 </p>
               </div>
             )}
