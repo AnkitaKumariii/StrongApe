@@ -1,0 +1,96 @@
+.border-glow-card {
+  position: relative;
+  border-radius: var(--border-radius, 28px);
+  background: var(--card-bg, #120F17);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Gradient fill (animated background blobs) */
+.border-glow-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    var(--gradient-one),
+    var(--gradient-two),
+    var(--gradient-three),
+    var(--gradient-four),
+    var(--gradient-five),
+    var(--gradient-six),
+    var(--gradient-seven),
+    var(--gradient-base);
+  background-size: 200% 200%, 200% 200%, 200% 200%, 200% 200%,
+    200% 200%, 200% 200%, 200% 200%, 100% 100%;
+  animation: gradient-shift 8s ease infinite alternate;
+  opacity: var(--fill-opacity, 0.5);
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%, 100% 0%, 50% 100%, 0% 0%, 100% 50%, 50% 0%, 0% 100%, 0% 0%; }
+  50%  { background-position: 100% 0%, 0% 100%, 100% 0%, 50% 50%, 0% 100%, 100% 50%, 50% 0%, 0% 0%; }
+  100% { background-position: 50% 100%, 50% 0%, 0% 50%, 100% 100%, 50% 0%, 0% 0%, 100% 100%, 0% 0%; }
+}
+
+/* Edge glow layer */
+.border-glow-card .edge-light {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* changed to 10 so it overlays the inner content */
+  z-index: 10;
+
+  --prox: calc(var(--edge-proximity, 0) / 100);
+  --sensitivity: calc(var(--edge-sensitivity, 30) / 100);
+  --spread: calc(var(--cone-spread, 25) * 1deg);
+  --padding: var(--glow-padding, 40px);
+
+  --angle: var(--cursor-angle, 0deg);
+  --a1: calc(var(--angle) - var(--spread));
+  --a2: calc(var(--angle) + var(--spread));
+
+  /* Threshold: only glow when cursor is near the edge */
+  --show: max(0, min(1, calc((var(--prox) - (1 - var(--sensitivity))) / var(--sensitivity))));
+
+  border: calc(var(--padding) * var(--show)) solid transparent;
+  background-image: conic-gradient(
+    from var(--angle),
+    transparent,
+    var(--glow-color-10) calc(var(--a1) - var(--spread) * 2),
+    var(--glow-color-20) calc(var(--a1) - var(--spread)),
+    var(--glow-color-30) var(--a1),
+    var(--glow-color-50) calc(var(--a1) + var(--spread) / 2),
+    var(--glow-color)    var(--angle),
+    var(--glow-color-50) calc(var(--a2) - var(--spread) / 2),
+    var(--glow-color-30) var(--a2),
+    var(--glow-color-20) calc(var(--a2) + var(--spread)),
+    var(--glow-color-10) calc(var(--a2) + var(--spread) * 2),
+    transparent
+  );
+  background-origin: border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  opacity: calc(var(--show) * 1);
+  transition: opacity 0.2s ease, border-width 0.2s ease;
+}
+
+/* Sweep animation variant */
+.border-glow-card.sweep-active .edge-light {
+  transition: none;
+}
+
+/* Inner content container */
+.border-glow-inner {
+  position: relative;
+  z-index: 2;
+  border-radius: inherit;
+}

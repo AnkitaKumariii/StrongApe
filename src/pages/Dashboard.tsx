@@ -4,6 +4,7 @@ import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
 import { WorkoutPost } from "@/components/domain/WorkoutPost"
 import { FitnessProfileSetup } from "@/components/domain/FitnessProfileSetup"
+import { PostCarousel } from "@/components/domain/PostCarousel"
 import { EncryptedText } from "@/components/ui/encrypted-text"
 import { Meteors } from "@/components/ui/meteors"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,7 +44,6 @@ function PostSkeleton() {
 
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip"
 import { GlowingEffect } from "@/components/ui/glowing-effect"
-
 const GlowingCard = ({ children, className = "", innerClassName = "bg-white" }: { children: React.ReactNode, className?: string, innerClassName?: string }) => {
   return (
     <div className={`group relative rounded-3xl border border-slate-200/50 p-[3px] ${className}`}>
@@ -332,7 +332,7 @@ export function Dashboard() {
                 text={`Welcome to StrongApe, ${user?.username || "Ape"}.`}
                 encryptedClassName="text-white/40 font-mono"
                 revealedClassName="text-white"
-                revealDelayMs={50}
+                revealDelayMs={80}
               />
             </h1>
             <p className="text-white/80 font-medium flex items-center gap-2">
@@ -351,7 +351,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {!user?.settings?.fitness_profile && <FitnessProfileSetup />}
+      <FitnessProfileSetup />
 
       {/* Features Quick Links */}
       <div className="bg-slate-900 rounded-3xl p-8 mb-12 shadow-lg border border-slate-800">
@@ -484,9 +484,9 @@ export function Dashboard() {
             <div onClick={fetchFeed} className="text-sm font-semibold text-primary cursor-pointer hover:underline">Refresh</div>
           </div>
 
-          <div className="space-y-6">
+          <div>
             {feedLoading && posts.length === 0 ? (
-              <div className="space-y-0">
+              <div className="space-y-4">
                 <PostSkeleton />
                 <PostSkeleton />
                 <PostSkeleton />
@@ -500,51 +500,23 @@ export function Dashboard() {
                 <p className="text-slate-500 font-medium mb-6">Create the very first post to start the conversation!</p>
               </Card>
             ) : (
-              <>
-                <AnimatePresence mode="popLayout">
-                  {posts.slice(0, visiblePostsCount).map((post, index) => (
-                    <motion.div
-                      key={post.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                      transition={{ duration: 0.4, type: "spring", bounce: 0.2, delay: index * 0.08 }}
-                      whileHover={{ y: -2, transition: { duration: 0.2, ease: "easeOut" } }}
-                    >
-                      <WorkoutPost
-                        index={index}
-                        id={post.id}
-                        author={post.author.full_name || post.author.username}
-                        initials={post.author.full_name ? post.author.full_name.charAt(0).toUpperCase() : post.author.username.charAt(0).toUpperCase()}
-                        timeAgo={formatTimeAgo(post.created_at)}
-                        content={post.content}
-                        mediaUrl={post.media_url}
-                        likes={post.likes_count}
-                        comments={0}
-                        isLiked={post.has_liked}
-                        onLikeToggle={handleLikeToggle}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {posts.length > visiblePostsCount && (
-                  <div className="flex justify-center mt-8">
-                    <Button 
-                      variant="outline" 
-                      className="rounded-full font-bold bg-white text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer shadow-sm transition-all hover:scale-105"
-                      onClick={() => setVisiblePostsCount(prev => prev + 5)}
-                    >
-                      View More Posts
-                    </Button>
-                  </div>
-                )}
-                {posts.length > 0 && visiblePostsCount >= posts.length && (
-                  <div className="text-center mt-8 text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                    You're all caught up!
-                  </div>
-                )}
-              </>
+              <PostCarousel
+                posts={posts.map(post => ({
+                  id: post.id,
+                  author: post.author.full_name || post.author.username,
+                  initials: post.author.full_name
+                    ? post.author.full_name.charAt(0).toUpperCase()
+                    : post.author.username.charAt(0).toUpperCase(),
+                  timeAgo: formatTimeAgo(post.created_at),
+                  content: post.content,
+                  mediaUrl: post.media_url,
+                  likes: post.likes_count,
+                  comments: 0,
+                  isLiked: post.has_liked,
+                }))}
+                onLikeToggle={handleLikeToggle}
+                loop={false}
+              />
             )}
           </div>
         </div>
