@@ -1,0 +1,260 @@
+# Brand-Themed TextRevealCard Component & Integration
+
+This file contains the complete source code for the premium, website-themed `TextRevealCard` component and the corresponding integration instructions for `Dashboard.tsx`.
+
+---
+
+## 1. Component Code (src/components/ui/text-reveal-card.tsx)
+
+```tsx
+"use client";
+import React, { useEffect, useRef, useState, memo } from "react";
+import { motion } from "framer-motion";
+import { twMerge } from "tailwind-merge";
+import { cn } from "@/lib/utils";
+
+export const TextRevealCard = ({
+  text,
+  revealText,
+  children,
+  className,
+  textClassName,
+  revealTextClassName,
+  starColor = "#0068f9", // Defaults to Website brand primary color
+}: {
+  text: string;
+  revealText: string;
+  children?: React.ReactNode;
+  className?: string;
+  textClassName?: string;
+  revealTextClassName?: string;
+  starColor?: string;
+}) => {
+  const [widthPercentage, setWidthPercentage] = useState(0);
+  const cardRef = useRef<HTMLDivElement | any>(null);
+  const [left, setLeft] = useState(0);
+  const [localWidth, setLocalWidth] = useState(0);
+  const [isMouseOver, setIsMouseOver] = useState(false);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      const { left, width: localWidth } =
+        cardRef.current.getBoundingClientRect();
+      setLeft(left);
+      setLocalWidth(localWidth);
+    }
+  }, []);
+
+  function mouseMoveHandler(event: any) {
+    event.preventDefault();
+
+    const { clientX } = event;
+    if (cardRef.current) {
+      const relativeX = clientX - left;
+      setWidthPercentage((relativeX / localWidth) * 100);
+    }
+  }
+
+  function mouseLeaveHandler() {
+    setIsMouseOver(false);
+    setWidthPercentage(0);
+  }
+  function mouseEnterHandler() {
+    setIsMouseOver(true);
+  }
+  function touchMoveHandler(event: React.TouchEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const clientX = event.touches[0]!.clientX;
+    if (cardRef.current) {
+      const relativeX = clientX - left;
+      setWidthPercentage((relativeX / localWidth) * 100);
+    }
+  }
+
+  const rotateDeg = (widthPercentage - 50) * 0.1;
+  return (
+    <div
+      onMouseEnter={mouseEnterHandler}
+      onMouseLeave={mouseLeaveHandler}
+      onMouseMove={mouseMoveHandler}
+      onTouchStart={mouseEnterHandler}
+      onTouchEnd={mouseLeaveHandler}
+      onTouchMove={touchMoveHandler}
+      ref={cardRef}
+      className={cn(
+        "bg-white border border-slate-200/80 w-[40rem] rounded-lg p-8 relative overflow-hidden",
+        className
+      )}
+    >
+      <MemoizedStars color={starColor} />
+      <div className="relative z-10">{children}</div>
+
+      <div className="h-40 relative flex items-center overflow-hidden z-10">
+        {/* Revealed Text (Royal Blue) */}
+        <motion.div
+          style={{
+            width: "100%",
+          }}
+          animate={
+            isMouseOver
+              ? {
+                  opacity: widthPercentage > 0 ? 1 : 0,
+                  clipPath: `inset(0 ${100 - widthPercentage}% 0 0)`,
+                }
+              : {
+                  clipPath: `inset(0 ${100 - widthPercentage}% 0 0)`,
+                }
+          }
+          transition={isMouseOver ? { duration: 0 } : { duration: 0.4 }}
+          className="absolute bg-transparent z-20 will-change-transform"
+        >
+          <p
+            style={{
+              textShadow: starColor.startsWith("#0068f9") 
+                ? "0px 0px 8px rgba(0, 104, 249, 0.15)" 
+                : "0px 0px 8px rgba(255, 255, 255, 0.2)",
+            }}
+            className={cn(
+              "text-base sm:text-[3rem] py-10 font-bold bg-clip-text text-transparent bg-gradient-to-b from-[#0068f9] to-[#0052cc]",
+              revealTextClassName
+            )}
+          >
+            {revealText}
+          </p>
+        </motion.div>
+
+        {/* Dynamic Divider Line */}
+        <motion.div
+          animate={{
+            left: `${widthPercentage}%`,
+            rotate: `${rotateDeg}deg`,
+            opacity: widthPercentage > 0 ? 1 : 0,
+          }}
+          transition={isMouseOver ? { duration: 0 } : { duration: 0.4 }}
+          className={cn(
+            "h-40 w-[2px] bg-gradient-to-b from-transparent via-[#0068f9]/50 to-transparent absolute z-50 will-change-transform",
+            starColor !== "#0068f9" && "via-white/50"
+          )}
+        ></motion.div>
+
+        {/* Hidden Text (Muted Slate) */}
+        <motion.div
+          animate={
+            isMouseOver
+              ? {
+                  clipPath: `inset(0 0 0 ${widthPercentage}%)`,
+                }
+              : {
+                  clipPath: `inset(0 0 0 0%)`,
+                }
+          }
+          transition={isMouseOver ? { duration: 0 } : { duration: 0.4 }}
+          className="absolute inset-0 overflow-hidden"
+        >
+          <p
+            className={cn(
+              "text-base sm:text-[3rem] py-10 font-bold bg-clip-text text-transparent bg-slate-300",
+              textClassName
+            )}
+          >
+            {text}
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export const TextRevealCardTitle = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <h2 className={twMerge("text-slate-900 text-lg mb-2 font-bold", className)}>
+      {children}
+    </h2>
+  );
+};
+
+export const TextRevealCardDescription = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <p className={twMerge("text-slate-500 text-sm", className)}>{children}</p>
+  );
+};
+
+const Stars = ({ color }: { color: string }) => {
+  const randomMove = () => Math.random() * 4 - 2;
+  const randomOpacity = () => Math.random() * 0.7 + 0.3;
+  const random = () => Math.random();
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {[...Array(80)].map((_, i) => (
+        <motion.span
+          key={`star-${i}`}
+          animate={{
+            top: `calc(${random() * 100}% + ${randomMove()}px)`,
+            left: `calc(${random() * 100}% + ${randomMove()}px)`,
+            opacity: randomOpacity(),
+            scale: [1, 1.2, 0.8],
+          }}
+          transition={{
+            duration: random() * 10 + 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          style={{
+            position: "absolute",
+            top: `${random() * 100}%`,
+            left: `${random() * 100}%`,
+            width: `2px`,
+            height: `2px`,
+            backgroundColor: color,
+            borderRadius: "50%",
+            zIndex: 1,
+          }}
+          className="inline-block"
+        ></motion.span>
+      ))}
+    </div>
+  );
+};
+
+export const MemoizedStars = memo(Stars);
+```
+
+---
+
+## 2. Integration into Dashboard (src/pages/Dashboard.tsx)
+
+### Imports (Top of file)
+```tsx
+import { TextRevealCard, TextRevealCardTitle, TextRevealCardDescription } from "@/components/ui/text-reveal-card"
+```
+
+### Banner Insertion (Inside Hero Banner container, below the welcome elements)
+```tsx
+          <TextRevealCard
+            text="You have the motivation"
+            revealText="We have the community"
+            className="bg-white/10 border-white/15 backdrop-blur-md w-full p-6 rounded-2xl shadow-none"
+            textClassName="bg-gradient-to-b from-white/40 to-white/20"
+            revealTextClassName="bg-gradient-to-b from-white to-blue-100"
+            starColor="rgba(255, 255, 255, 0.4)"
+          >
+            <TextRevealCardTitle className="text-white font-extrabold text-lg">
+              Let's make it happen
+            </TextRevealCardTitle>
+            <TextRevealCardDescription className="text-white/80 text-sm">
+              StrongApe is a fitness social network that helps you stay motivated and accountable on your fitness journey.
+            </TextRevealCardDescription>
+          </TextRevealCard>
+```

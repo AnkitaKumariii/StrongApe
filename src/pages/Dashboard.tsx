@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Layout } from "@/components/layout/Layout"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
+import { ApeGallery } from "@/components/domain/ApeGallery"
+import { WorkoutGallery } from "@/components/domain/WorkoutGallery"
 import { WorkoutPost } from "@/components/domain/WorkoutPost"
 import { FitnessProfileSetup } from "@/components/domain/FitnessProfileSetup"
 import { PostCarousel } from "@/components/domain/PostCarousel"
@@ -366,37 +368,11 @@ export function Dashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Workout Routines */}
-          <Link
-            to="/workout-routines"
-            className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer block no-underline"
-          >
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
-                <Dumbbell className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Workout Routines</h3>
-            </div>
-            <p className="text-slate-400 text-sm font-medium leading-relaxed">
-              Access scientifically-designed workout plans that adapt to your fitness level and objectives.
-            </p>
-          </Link>
+          {/* Workout Routines Preview */}
+          <WorkoutGallery />
 
-          {/* Food Scanner */}
-          <Link
-            to="/food-scanner"
-            className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-primary/50 hover:bg-slate-800 transition-all group cursor-pointer block no-underline"
-          >
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:scale-110 transition-transform">
-                <ScanLine className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Food Scanner</h3>
-            </div>
-            <p className="text-slate-400 text-sm font-medium leading-relaxed">
-              Scan your meals to get instant nutritional analysis and track your dietary intake effortlessly.
-            </p>
-          </Link>
+          {/* Food Scanner Preview */}
+          <ApeGallery />
         </div>
       </div>
 

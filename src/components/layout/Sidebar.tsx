@@ -4,7 +4,7 @@ import { Home, Users, MapPin, MessageSquare, Award, LogOut, Bell, Sun, Moon } fr
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
-import { MagneticDock, type DockItemData } from "../../../sh"
+import { MagneticDock, type DockItemData } from "@/components/ui/magnetic-dock"
 import { motion } from "framer-motion"
 
 export function Sidebar() {
