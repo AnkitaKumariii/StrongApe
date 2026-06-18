@@ -302,68 +302,67 @@ export function FitnessProfileSetup() {
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
+      <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-5 md:p-8 shadow-xl relative overflow-hidden">
         {/* Decorative background matching app theme */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-        <div className="text-center mb-10 relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="p-3 bg-primary/10 rounded-2xl">
-              <User className="w-6 h-6 text-primary" />
+        <div className="text-center mb-6 relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <User className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">Your <span className="text-primary"><TrueFocus sentence="Fitness Profile" manualMode={true} blurAmount={2} /></span></h2>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">Your <span className="text-primary"><TrueFocus sentence="Fitness Profile" manualMode={true} blurAmount={2} /></span></h2>
           </div>
-          <p className="text-slate-500 font-medium">Tell us about yourself to get personalized workout and meal plans</p>
         </div>
 
-        <form className="space-y-8 relative z-10" onSubmit={handleSaveProfile}>
+        <form className="space-y-5 relative z-10" onSubmit={handleSaveProfile}>
 
-          {/* Primary Goal */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
-              <Target className="w-4 h-4 text-primary" />
-              Primary Goal *
-            </label>
-            <div className="relative">
-              <select
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                value={formData.primaryGoal}
-                onChange={(e) => handleInputChange("primaryGoal", e.target.value)}
-              >
-                <option value="" disabled>Select your primary goal</option>
-                <option value="muscle">Build Muscle</option>
-                <option value="weight">Lose Weight</option>
-                <option value="endurance">Improve Endurance</option>
-                <option value="health">General Health</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          {/* Core Info */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2 space-y-2">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <Target className="w-4 h-4 text-primary" />
+                Primary Goal *
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-sm"
+                  value={formData.primaryGoal}
+                  onChange={(e) => handleInputChange("primaryGoal", e.target.value)}
+                >
+                  <option value="" disabled>Select your goal</option>
+                  <option value="muscle">Build Muscle</option>
+                  <option value="weight">Lose Weight</option>
+                  <option value="endurance">Improve Endurance</option>
+                  <option value="health">General Health</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          {/* Weight & Height */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 <Scale className="w-4 h-4 text-primary" />
                 Weight (kg) *
               </label>
               <input
                 type="number"
                 placeholder="e.g. 70"
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm"
                 value={formData.weight}
                 onChange={(e) => handleInputChange("weight", e.target.value)}
               />
             </div>
+            
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-bold text-slate-500 uppercase tracking-wider">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 <Ruler className="w-4 h-4 text-primary" />
                 Height (cm) *
               </label>
               <input
                 type="number"
                 placeholder="e.g. 175"
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm"
                 value={formData.height}
                 onChange={(e) => handleInputChange("height", e.target.value)}
               />
@@ -371,9 +370,9 @@ export function FitnessProfileSetup() {
           </div>
 
           {/* Dietary Preferences */}
-          <div className="space-y-4 pt-2">
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Dietary Preferences</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dietary Preferences</h3>
+            <div className="flex flex-wrap gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
               {([
                 { field: "dietMeat", label: "I eat meat", emoji: "🥩" },
                 { field: "dietVegan", label: "Vegan / Plant-based", emoji: "🌱" },
@@ -381,14 +380,14 @@ export function FitnessProfileSetup() {
                 { field: "dietGlutenFree", label: "Gluten-Free", emoji: "🌾" },
                 { field: "dietNutFree", label: "Nut-Free", emoji: "🥜" },
               ] as { field: keyof typeof formData; label: string; emoji: string }[]).map(({ field, label, emoji }) => (
-                <label key={field} className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200">
-                  <div className={cn(
-                    "w-6 h-6 rounded-md flex items-center justify-center border transition-all duration-200 shadow-sm flex-shrink-0",
-                    formData[field] ? "bg-primary border-primary" : "bg-white border-slate-300 group-hover:border-primary/50"
-                  )}>
-                    {formData[field] && <Check className="w-4 h-4 text-white" />}
-                  </div>
-                  <span className="text-slate-700 font-bold text-sm">{emoji} {label}</span>
+                <label key={field} className={cn(
+                  "flex items-center gap-2 cursor-pointer group px-4 py-2 rounded-full transition-all border text-sm font-bold shadow-sm select-none",
+                  formData[field] 
+                    ? "bg-primary border-primary text-white" 
+                    : "bg-white border-slate-200 text-slate-600 hover:border-primary/40 hover:bg-slate-50"
+                )}>
+                  <span>{emoji}</span>
+                  <span>{label}</span>
                   <input
                     type="checkbox"
                     className="hidden"
@@ -401,37 +400,37 @@ export function FitnessProfileSetup() {
           </div>
 
           {/* Allergies */}
-          <div className="space-y-3 pt-2">
-            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Allergies</label>
-            <div className="flex gap-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Allergies</label>
+            <div className="flex gap-3">
               <input
                 type="text"
                 placeholder="Enter an allergy"
-                className="flex-1 h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="flex-1 h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm"
                 value={formData.allergyInput}
                 onChange={(e) => handleInputChange("allergyInput", e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddAllergy()}
               />
               <button
                 type="button"
-                className="h-14 px-8 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors"
+                className="h-11 px-5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors text-sm"
                 onClick={handleAddAllergy}
               >
                 Add
               </button>
             </div>
             {formData.allergies.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {formData.allergies.map(allergy => (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     key={allergy}
-                    className="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-lg text-sm font-bold text-red-600 shadow-sm"
+                    className="flex items-center gap-1.5 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg text-xs font-bold text-red-600 shadow-sm"
                   >
                     {allergy}
                     <button onClick={() => handleRemoveAllergy(allergy)} className="text-red-400 hover:text-red-600 transition-colors">
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </motion.div>
                 ))}
@@ -439,64 +438,64 @@ export function FitnessProfileSetup() {
             )}
           </div>
 
-          {/* Eating Style */}
-          <div className="space-y-2 pt-2">
-            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-              Eating Style *
-            </label>
-            <div className="relative">
-              <select
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                value={formData.eatingStyle}
-                onChange={(e) => handleInputChange("eatingStyle", e.target.value)}
-              >
-                <option value="" disabled>Select your eating style</option>
-                <option value="3meals">3 Meals/Day</option>
-                <option value="fasting">Intermittent Fasting</option>
-                <option value="snacking">Frequent Snacking</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          {/* Lifestyle Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Eating Style *
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-sm"
+                  value={formData.eatingStyle}
+                  onChange={(e) => handleInputChange("eatingStyle", e.target.value)}
+                >
+                  <option value="" disabled>Select style</option>
+                  <option value="3meals">3 Meals/Day</option>
+                  <option value="fasting">Intermittent Fasting</option>
+                  <option value="snacking">Frequent Snacking</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          {/* Caffeine Consumption */}
-          <div className="space-y-2 pt-2">
-            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-              Caffeine Consumption *
-            </label>
-            <div className="relative">
-              <select
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                value={formData.caffeine}
-                onChange={(e) => handleInputChange("caffeine", e.target.value)}
-              >
-                <option value="" disabled>Select caffeine level</option>
-                <option value="none">None</option>
-                <option value="low">Low (1 cup)</option>
-                <option value="moderate">Moderate (2-3 cups)</option>
-                <option value="high">High (4+ cups)</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Caffeine *
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-sm"
+                  value={formData.caffeine}
+                  onChange={(e) => handleInputChange("caffeine", e.target.value)}
+                >
+                  <option value="" disabled>Select level</option>
+                  <option value="none">None</option>
+                  <option value="low">Low (1 cup)</option>
+                  <option value="moderate">Moderate (2-3)</option>
+                  <option value="high">High (4+)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          {/* Sugar Consumption */}
-          <div className="space-y-2 pt-2">
-            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-              Sugar Consumption *
-            </label>
-            <div className="relative">
-              <select
-                className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                value={formData.sugar}
-                onChange={(e) => handleInputChange("sugar", e.target.value)}
-              >
-                <option value="" disabled>Select sugar consumption</option>
-                <option value="low">Low (Mostly Natural)</option>
-                <option value="moderate">Moderate (Occasional Treats)</option>
-                <option value="high">High (Daily Sweets)</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Sugar *
+              </label>
+              <div className="relative">
+                <select
+                  className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 text-slate-900 font-semibold appearance-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer text-sm"
+                  value={formData.sugar}
+                  onChange={(e) => handleInputChange("sugar", e.target.value)}
+                >
+                  <option value="" disabled>Select level</option>
+                  <option value="low">Low (Natural)</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="high">High (Daily)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
@@ -506,11 +505,11 @@ export function FitnessProfileSetup() {
             </div>
           )}
 
-          <div className="pt-8">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={saveLoading}
-              className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-black rounded-xl text-lg transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl text-lg transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {saveLoading ? "Saving..." : "Save Profile"}
             </button>
