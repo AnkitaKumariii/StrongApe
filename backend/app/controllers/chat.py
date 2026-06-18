@@ -55,3 +55,13 @@ class ChatController:
     ) -> ChatMessageOut:
         msg = await ChatService.send_message(db=db, thread_id=thread_id, sender_id=user.id, obj_in=message_in)
         return ChatMessageOut.model_validate(msg)
+
+    @staticmethod
+    async def delete_message(db: AsyncSession, user: User, thread_id: int, message_id: int) -> dict:
+        await ChatService.delete_message(db=db, thread_id=thread_id, message_id=message_id, sender_id=user.id)
+        return {"detail": "Message deleted successfully"}
+
+    @staticmethod
+    async def delete_thread(db: AsyncSession, user: User, thread_id: int) -> dict:
+        await ChatService.delete_thread(db=db, thread_id=thread_id, user_id=user.id)
+        return {"detail": "Thread deleted successfully"}

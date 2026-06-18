@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { MessageSquare, Send, Plus, ArrowLeft } from "lucide-react"
+import { MessageSquare, Send, Plus, ArrowLeft, CheckCheck, Trash2 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
 
@@ -66,9 +67,9 @@ export function Messages() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchThreads = async (selectThreadId?: number) => {
+  const fetchThreads = async (selectThreadId?: number, isPolling = false) => {
     try {
-      setLoadingThreads(true);
+      if (!isPolling) setLoadingThreads(true);
       const data = await api.get<ChatThread[]>("/api/chats/threads");
       setThreads(data);
       if (selectThreadId) {
@@ -79,19 +80,19 @@ export function Messages() {
     } catch (err) {
       console.error("Failed to fetch chat threads:", err);
     } finally {
-      setLoadingThreads(false);
+      if (!isPolling) setLoadingThreads(false);
     }
   };
 
-  const fetchMessages = async (threadId: number) => {
+  const fetchMessages = async (threadId: number, isPolling = false) => {
     try {
-      setLoadingMessages(true);
+      if (!isPolling) setLoadingMessages(true);
       const data = await api.get<Message[]>(`/api/chats/threads/${threadId}/messages`);
       setMessages(data);
     } catch (err) {
       console.error("Failed to fetch messages:", err);
     } finally {
-      setLoadingMessages(false);
+      if (!isPolling) setLoadingMessages(false);
     }
   };
 
@@ -99,7 +100,19 @@ export function Messages() {
     try {
       setLoadingNearby(true);
       const data = await api.get<NearbyUser[]>("/api/users/nearby?max_distance_km=100");
-      setNearbyUsers(data);
+      if (data && data.length > 0) {
+        setNearbyUsers(data);
+      } else {
+        // Fallback to top users if no one is nearby
+        const fallbackData = await api.get<any[]>("/api/users/leaderboard?limit=10");
+        const mappedFallback = fallbackData
+          .filter(u => u.id !== user?.id)
+          .map(u => ({
+            ...u,
+            distance_km: 0
+          }));
+        setNearbyUsers(mappedFallback);
+      }
     } catch (err) {
       console.error("Failed to fetch users to message:", err);
     } finally {
@@ -109,11 +122,19 @@ export function Messages() {
 
   useEffect(() => {
     fetchThreads();
+    const intervalId = setInterval(() => {
+      fetchThreads(undefined, true);
+    }, 5000); // Background poll for thread unread counts
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
     if (activeThreadId !== null) {
       fetchMessages(activeThreadId);
+      const intervalId = setInterval(() => {
+        fetchMessages(activeThreadId, true);
+      }, 3000); // High frequency poll for active thread messages
+      return () => clearInterval(intervalId);
     }
   }, [activeThreadId]);
 
@@ -143,6 +164,29 @@ export function Messages() {
       );
     } catch (err) {
       console.error("Failed to send message:", err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: number) => {
+    if (activeThreadId === null) return;
+    try {
+      await api.delete(`/api/chats/threads/${activeThreadId}/messages/${messageId}`);
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+    } catch (err) {
+      console.error("Failed to delete message:", err);
+    }
+  };
+
+  const handleDeleteThread = async (e: React.MouseEvent, threadId: number) => {
+    e.stopPropagation();
+    try {
+      await api.delete(`/api/chats/threads/${threadId}`);
+      setThreads(prev => prev.filter(t => t.id !== threadId));
+      if (activeThreadId === threadId) {
+        setActiveThreadId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete thread:", err);
     }
   };
 
@@ -181,11 +225,11 @@ export function Messages() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 h-[calc(100vh-12rem)] bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+      <div className="relative grid grid-cols-1 md:grid-cols-12 h-[calc(100vh-12rem)] rounded-3xl overflow-hidden shadow-sm border border-slate-200 bg-white">
         
         {/* Threads List Sidebar */}
-        <div className={`md:col-span-4 border-r border-slate-200 flex flex-col h-full bg-slate-50/50 ${activeThreadId !== null ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-slate-200 bg-white font-bold text-slate-700 text-sm tracking-wider uppercase">
+        <div className={`md:col-span-4 border-r border-slate-200 flex flex-col h-full bg-slate-50/50 z-10 ${activeThreadId !== null ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 border-b border-slate-200 bg-white font-black text-slate-800 text-sm tracking-wider uppercase">
             Conversations
           </div>
           
@@ -197,134 +241,189 @@ export function Messages() {
                 No active conversations yet. Click "New Chat" to start messaging.
               </div>
             ) : (
-              threads.map((t) => {
-                const recipient = getRecipient(t);
-                const isActive = t.id === activeThreadId;
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveThreadId(t.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-left cursor-pointer border-none bg-transparent ${
-                      isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    <Avatar className="w-10 h-10 shrink-0">
-                      <AvatarFallback className="bg-primary text-white font-bold text-sm">
-                        {recipient.full_name ? recipient.full_name.charAt(0).toUpperCase() : recipient.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900 text-sm truncate">{recipient.full_name || recipient.username}</span>
-                        {t.unread_count > 0 && (
-                          <span className="w-2.5 h-2.5 bg-destructive rounded-full shrink-0"></span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 truncate mt-0.5">
-                        {t.last_message ? t.last_message.content : "No messages yet"}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })
+              <AnimatePresence>
+                {threads.map((t) => {
+                  const recipient = getRecipient(t);
+                  const isActive = t.id === activeThreadId;
+                  return (
+                    <motion.div
+                      key={t.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -50, height: 0, marginBottom: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="group"
+                    >
+                      <button
+                        onClick={() => setActiveThreadId(t.id)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-colors duration-200 text-left cursor-pointer border-none relative hover:bg-slate-100 ${
+                          isActive ? 'bg-primary/5' : 'bg-transparent'
+                        }`}
+                      >
+                        <Avatar className="w-10 h-10 shrink-0 border border-slate-200">
+                          <AvatarFallback className="bg-primary text-white font-bold text-sm">
+                            {recipient.full_name ? recipient.full_name.charAt(0).toUpperCase() : recipient.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0 pr-8">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 text-sm truncate">{recipient.full_name || recipient.username}</span>
+                            {t.unread_count > 0 && (
+                              <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0"></span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">
+                            {t.last_message ? t.last_message.content : "No messages yet"}
+                          </p>
+                        </div>
+                        
+                        <button 
+                          onClick={(e) => handleDeleteThread(e, t.id)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-full"
+                          title="Delete Conversation"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             )}
           </div>
         </div>
 
         {/* Messaging Chat Window */}
-        <div className={`md:col-span-8 flex flex-col h-full bg-white ${activeThreadId === null ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`md:col-span-8 flex flex-col h-full bg-[#f8fafc] relative overflow-hidden z-10 ${activeThreadId === null ? 'hidden md:flex' : 'flex'}`}>
+          {/* Subtle Dot Grid Background */}
+          <div className="absolute inset-0 z-0 opacity-[0.3]" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+          
           {activeThreadId === null ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50/20">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
-                <MessageSquare className="w-8 h-8" />
-              </div>
-              <h3 className="font-bold text-lg text-slate-900 mb-1">Your Inbox</h3>
-              <p className="text-slate-500 font-medium max-w-xs text-sm">
-                Select a thread from the sidebar or start a new conversation to begin chatting.
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 relative z-10">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="w-32 h-32 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-200 rotate-3 hover:rotate-0 transition-transform"
+              >
+                <MessageSquare className="w-12 h-12 text-slate-700" />
+              </motion.div>
+              <h3 className="font-bold text-3xl text-slate-900 mb-3 tracking-tight">StrongApe Chat</h3>
+              <p className="text-slate-500 font-medium max-w-sm text-sm leading-relaxed">
+                Select a thread from the sidebar or start a new conversation to connect.
               </p>
             </div>
           ) : (
             <>
               {/* Chat Thread Header */}
-              <div className="p-4 border-b border-slate-200 bg-white flex items-center gap-3">
+              <div className="p-4 border-b border-slate-200 bg-white/80 backdrop-blur-md flex items-center gap-3 z-20 sticky top-0">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setActiveThreadId(null)}
-                  className="md:hidden text-slate-500 hover:text-slate-900 rounded-full h-8 w-8"
+                  className="md:hidden text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full h-8 w-8"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 {activeRecipient && (
                   <>
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-10 h-10 border border-slate-200">
                       <AvatarFallback className="bg-primary text-white font-bold">
                         {activeRecipient.full_name ? activeRecipient.full_name.charAt(0).toUpperCase() : activeRecipient.username.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-bold text-slate-900 text-sm">
+                      <h3 className="font-bold text-slate-900 text-sm tracking-tight">
                         {activeRecipient.full_name || activeRecipient.username}
                       </h3>
-                      {activeRecipient.gym_name && (
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                          {activeRecipient.gym_name}
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        <p className="text-[11px] font-bold text-green-600 uppercase tracking-wider">
+                          Online
                         </p>
-                      )}
+                      </div>
                     </div>
                   </>
                 )}
               </div>
 
               {/* Chat Messages List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 relative z-10 scrollbar-thin scrollbar-thumb-slate-300">
                 {loadingMessages && messages.length === 0 ? (
-                  <div className="text-center text-slate-400 text-xs py-8">Loading conversation history...</div>
+                  <div className="flex justify-center py-4">
+                    <span className="bg-[#EFEAE2] shadow-sm text-slate-500 text-xs px-4 py-1.5 rounded-full">Loading conversation...</span>
+                  </div>
                 ) : messages.length === 0 ? (
-                  <div className="text-center text-slate-400 text-xs py-8">No messages yet. Send a message to start the chat!</div>
+                  <div className="flex justify-center py-4">
+                    <span className="bg-[#FFF5C4] text-yellow-800 shadow-sm text-xs px-4 py-2 rounded-lg text-center max-w-xs leading-relaxed">
+                      Messages are end-to-end encrypted. No one outside of this chat, not even StrongApe, can read to them.
+                    </span>
+                  </div>
                 ) : (
-                  messages.map((m) => {
-                    const isOutgoing = m.sender_id === user?.id;
-                    return (
-                      <div 
-                        key={m.id} 
-                        className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                          isOutgoing 
-                            ? 'bg-primary text-white rounded-br-none' 
-                            : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
-                        }`}>
-                          <p className="leading-relaxed whitespace-pre-wrap">{m.content}</p>
-                          <div className={`text-[9px] font-bold text-right mt-1 ${isOutgoing ? 'text-white/70' : 'text-slate-400'}`}>
-                            {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <AnimatePresence initial={false}>
+                    {messages.map((m) => {
+                      const isOutgoing = m.sender_id === user?.id;
+                      return (
+                        <motion.div 
+                          key={m.id} 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9, height: 0, marginBottom: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className={`flex group ${isOutgoing ? 'justify-end' : 'justify-start'}`}
+                        >
+                          {isOutgoing && (
+                            <button
+                              onClick={() => handleDeleteMessage(m.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity mr-2 p-1 text-slate-400 hover:text-rose-500 rounded-full self-center"
+                              title="Delete Message"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <div className={`relative max-w-[85%] md:max-w-[70%] px-4 py-2.5 text-[15px] transition-transform duration-200 hover:-translate-y-[1px] ${
+                            isOutgoing 
+                              ? 'bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-2xl rounded-tr-sm shadow-sm' 
+                              : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm shadow-sm'
+                          }`}>
+                            <p className="leading-relaxed whitespace-pre-wrap font-medium">{m.content}</p>
+                            <div className="flex items-center gap-1.5 justify-end mt-1 opacity-80">
+                              <span className={`text-[10px] font-bold tracking-wider ${isOutgoing ? 'text-slate-300' : 'text-slate-400'}`}>
+                                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {isOutgoing && (
+                                <CheckCheck className="w-3.5 h-3.5 text-slate-300" />
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input Box */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex gap-2">
-                <Input 
-                  placeholder="Type a message..." 
-                  value={newMessageText}
-                  onChange={(e) => setNewMessageText(e.target.value)}
-                  className="flex-1 rounded-xl h-12 border-slate-200 focus-visible:ring-primary text-sm font-medium"
-                  required
-                />
-                <Button 
-                  type="submit" 
-                  size="icon" 
-                  className="rounded-xl h-12 w-12 shrink-0 cursor-pointer shadow-md shadow-primary/20"
-                  disabled={!newMessageText.trim()}
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
-              </form>
+              <div className="p-4 bg-transparent z-20">
+                <form onSubmit={handleSendMessage} className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl shadow-sm transition-all focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-slate-100">
+                  <Input 
+                    placeholder="Type a message..." 
+                    value={newMessageText}
+                    onChange={(e) => setNewMessageText(e.target.value)}
+                    className="flex-1 rounded-2xl h-12 border-none bg-transparent focus-visible:ring-0 text-sm font-semibold px-4 shadow-none"
+                    required
+                  />
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    className="rounded-xl h-12 w-12 shrink-0 cursor-pointer bg-slate-900 hover:bg-slate-800 hover:scale-105 active:scale-95 text-white transition-all shadow-sm"
+                    disabled={!newMessageText.trim()}
+                  >
+                    <Send className="w-5 h-5 ml-0.5" />
+                  </Button>
+                </form>
+              </div>
             </>
           )}
         </div>
@@ -345,7 +444,7 @@ export function Messages() {
               <div className="text-center py-8 text-xs text-slate-400">Searching partners...</div>
             ) : nearbyUsers.length === 0 ? (
               <div className="text-center py-8 text-xs text-slate-500 font-semibold">
-                No nearby workout partners found to start a conversation. Make sure your profile location is set!
+                No users found yet. Wait for the StrongApe community to grow!
               </div>
             ) : (
               nearbyUsers.map((u) => (

@@ -40,3 +40,20 @@ async def send_message(
     current_user: User = Depends(get_current_user)
 ):
     return await ChatController.send_message(db=db, user=current_user, thread_id=thread_id, message_in=message_in)
+
+@router.delete("/threads/{thread_id}/messages/{message_id}", status_code=status.HTTP_200_OK)
+async def delete_message(
+    thread_id: int,
+    message_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return await ChatController.delete_message(db=db, user=current_user, thread_id=thread_id, message_id=message_id)
+
+@router.delete("/threads/{thread_id}", status_code=status.HTTP_200_OK)
+async def delete_thread(
+    thread_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return await ChatController.delete_thread(db=db, user=current_user, thread_id=thread_id)

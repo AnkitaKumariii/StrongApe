@@ -160,3 +160,47 @@ class ChatService:
         await db.commit()
         await db.refresh(db_msg)
         return db_msg
+
+    @staticmethod
+    async def delete_message(db: AsyncSession, thread_id: int, message_id: int, sender_id: int) -> None:
+        result = await db.execute(
+            select(ChatMessage).where(
+                (ChatMessage.id == message_id) & 
+                (ChatMessage.thread_id == thread_id)
+            )
+        )
+        msg = result.scalars().first()
+        if not msg:
+            raise NotFoundException("Message not found in this thread")
+        if msg.sender_id != sender_id:
+            raise ForbiddenException("You can only delete your own messages")
+            
+        await db.delete(msg)
+        await db.commit()
+
+    @staticmethod
+    async def delete_thread(db: AsyncSession, thread_id: int, user_id: int) -> None:
+        part_check = await db.execute(
+            select(ChatThreadParticipant).where(
+                (ChatThreadParticipant.thread_id == thread_id) & 
+                (ChatThreadParticipant.user_id == user_id)
+            )
+        )
+        if not part_check.scalars().first():
+            raise ForbiddenException("You do not have access to this thread")
+            
+        # Delete messages first manually just in case cascade is not on
+        await db.execute(
+            ChatMessage.__table__.delete().where(ChatMessage.thread_id == thread_id)
+        )
+        # Delete participants
+        await db.execute(
+            ChatThreadParticipant.__table__.delete().where(ChatThreadParticipant.thread_id == thread_id)
+        )
+        # Delete thread
+        result = await db.execute(select(ChatThread).where(ChatThread.id == thread_id))
+        thread = result.scalars().first()
+        if thread:
+            await db.delete(thread)
+            
+        await db.commit()
