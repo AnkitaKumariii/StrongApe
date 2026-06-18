@@ -9,7 +9,9 @@ from app.core.errors import BadRequestException
 from typing import List
 import os
 import uuid
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/attach-media")
@@ -22,22 +24,51 @@ async def upload_image(
     if file.content_type not in allowed_types or ext not in [".jpg", ".jpeg", ".png"]:
         raise BadRequestException("Only JPG and PNG files are allowed.")
         
-    # Ensure static directory exists
     from app.core.config import settings
+    unique_filename = f"{uuid.uuid4()}{ext}"
+    
+    # Try cloud upload if Supabase Storage credentials are set
+    if settings.SUPABASE_URL and settings.SUPABASE_KEY:
+        import httpx
+        bucket = "uploads"
+        upload_url = f"{settings.SUPABASE_URL}/storage/v1/object/{bucket}/{unique_filename}"
+        headers = {
+            "Authorization": f"Bearer {settings.SUPABASE_KEY}",
+            "Content-Type": file.content_type
+        }
+        try:
+            content = await file.read()
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(upload_url, headers=headers, content=content)
+                if resp.status_code == 200:
+                    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket}/{unique_filename}"
+                    return {"image_url": public_url}
+                else:
+                    logger.warning(
+                        "Supabase storage upload failed (status %s: %s). Falling back to local storage.", 
+                        resp.status_code, 
+                        resp.text
+                    )
+            # Reset file read cursor just in case we need to read it again for local fallback
+            await file.seek(0)
+        except Exception as exc:
+            logger.warning("Error uploading to Supabase: %s. Falling back to local storage.", exc)
+            try:
+                await file.seek(0)
+            except Exception:
+                pass
+
+    # Local storage fallback
     upload_dir = os.path.join(settings.STATIC_DIR, "uploads")
     os.makedirs(upload_dir, exist_ok=True)
-    
-    # Generate unique filename
-    unique_filename = f"{uuid.uuid4()}{ext}"
     file_path = os.path.join(upload_dir, unique_filename)
     
-    # Save the file
     try:
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
     except Exception as e:
-        raise BadRequestException(f"Could not save file: {str(e)}")
+        raise BadRequestException(f"Could not save file locally: {str(e)}")
         
     return {"image_url": f"/static/uploads/{unique_filename}"}
 

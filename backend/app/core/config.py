@@ -27,6 +27,10 @@ class Settings(BaseSettings):
         default="gemini-2.5-flash-lite,gemini-1.5-flash"
     )
 
+    # Supabase Storage configuration for sharing media
+    SUPABASE_URL: str = Field(default="")
+    SUPABASE_KEY: str = Field(default="")
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),
         env_file_encoding="utf-8",
