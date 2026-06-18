@@ -64,3 +64,12 @@ async def toggle_like(
     current_user: User = Depends(get_current_user)
 ):
     return await PostController.toggle_like(db=db, user=current_user, post_id=post_id)
+
+@router.delete("/{post_id}")
+async def delete_post(
+    post_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    await PostController.delete_post(db=db, user=current_user, post_id=post_id)
+    return {"success": True, "message": "Post deleted successfully"}

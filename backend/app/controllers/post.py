@@ -32,3 +32,7 @@ class PostController:
     async def toggle_like(db: AsyncSession, user: User, post_id: int) -> LikeToggle:
         liked, likes_count = await PostService.toggle_like(db=db, post_id=post_id, user_id=user.id)
         return LikeToggle(liked=liked, likes_count=likes_count)
+
+    @staticmethod
+    async def delete_post(db: AsyncSession, user: User, post_id: int) -> bool:
+        return await PostService.delete_post(db=db, user_id=user.id, post_id=post_id)

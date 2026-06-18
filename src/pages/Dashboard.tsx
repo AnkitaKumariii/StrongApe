@@ -287,6 +287,15 @@ export function Dashboard() {
     }
   };
 
+  const handleDeletePost = async (postId: number) => {
+    try {
+      await api.delete(`/api/posts/${postId}`);
+      setPosts(posts.filter((post) => post.id !== postId));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
+
   const handleLogWorkoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLogError("");
@@ -519,6 +528,7 @@ export function Dashboard() {
                 posts={posts.map(post => ({
                   id: post.id,
                   author: post.author.full_name || post.author.username,
+                  authorId: post.author.id,
                   initials: post.author.full_name
                     ? post.author.full_name.charAt(0).toUpperCase()
                     : post.author.username.charAt(0).toUpperCase(),
@@ -530,6 +540,8 @@ export function Dashboard() {
                   isLiked: post.has_liked,
                 }))}
                 onLikeToggle={handleLikeToggle}
+                currentUserId={user?.id}
+                onDeletePost={handleDeletePost}
                 loop={false}
               />
             )}

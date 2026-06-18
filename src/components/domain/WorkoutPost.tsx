@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react"
+import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2 } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -18,9 +18,25 @@ interface WorkoutPostProps {
   isLiked?: boolean
   onLikeToggle?: (postId: number) => void
   index?: number
+  isAuthor?: boolean
+  onDelete?: (postId: number) => void
 }
 
-export function WorkoutPost({ id, author, initials, timeAgo, content, mediaUrl, likes, comments, isLiked, onLikeToggle, index = 0 }: WorkoutPostProps) {
+export function WorkoutPost({
+  id,
+  author,
+  initials,
+  timeAgo,
+  content,
+  mediaUrl,
+  likes,
+  comments,
+  isLiked,
+  onLikeToggle,
+  index = 0,
+  isAuthor = false,
+  onDelete,
+}: WorkoutPostProps) {
   const fullMediaUrl = mediaUrl
     ? (mediaUrl.startsWith("http") ? mediaUrl : `${BASE_URL}${mediaUrl}`)
     : undefined;
@@ -41,9 +57,20 @@ export function WorkoutPost({ id, author, initials, timeAgo, content, mediaUrl, 
           <div className="font-bold text-slate-900 text-sm truncate group-hover:text-primary transition-colors">{author}</div>
           <div className="text-xs text-slate-500 font-medium">{timeAgo}</div>
         </div>
-        <Button variant="ghost" size="icon" className="text-slate-400 h-8 w-8 rounded-full">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
+        {isAuthor && onDelete ? (
+          <Button
+            onClick={() => onDelete(id)}
+            variant="ghost"
+            size="icon"
+            className="text-red-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 rounded-full cursor-pointer transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" className="text-slate-400 h-8 w-8 rounded-full">
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent className="p-4 pt-2">

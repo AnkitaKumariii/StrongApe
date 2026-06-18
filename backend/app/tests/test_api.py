@@ -162,6 +162,27 @@ async def test_checkin_and_posts_flow(client: AsyncClient):
     assert response.json()["liked"] is False
     assert response.json()["likes_count"] == 0
 
+    # 5. Try to delete the post using another user (strongape2)
+    login_payload2 = {
+        "username_or_email": "strongape2",
+        "password": "strongpassword123"
+    }
+    response = await client.post("/api/auth/login", json=login_payload2)
+    token2 = response.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    response = await client.delete(f"/api/posts/{post_id}", headers=headers2)
+    assert response.status_code == 403
+
+    # 6. Delete the post using the author (strongape1)
+    response = await client.delete(f"/api/posts/{post_id}", headers=headers)
+    assert response.status_code == 200
+
+    # 7. Check that the post is no longer in the feed
+    response = await client.get("/api/posts", headers=headers)
+    feed_after_delete = response.json()
+    assert not any(p["id"] == post_id for p in feed_after_delete)
+
 
 # Test Communities Flow
 @pytest.mark.asyncio

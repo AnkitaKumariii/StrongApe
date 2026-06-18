@@ -6,7 +6,7 @@ from sqlalchemy import func
 from app.models.post import Post, PostLike
 from app.models.user import User
 from app.schemas.post import PostCreate
-from app.core.errors import NotFoundException
+from app.core.errors import NotFoundException, ForbiddenException
 
 class PostService:
     @staticmethod
@@ -94,3 +94,16 @@ class PostService:
         likes_count = count_res.scalar_one()
         
         return liked, likes_count
+
+    @staticmethod
+    async def delete_post(db: AsyncSession, user_id: int, post_id: int) -> bool:
+        result = await db.execute(select(Post).where(Post.id == post_id))
+        post = result.scalars().first()
+        if not post:
+            raise NotFoundException("Post not found")
+        if post.user_id != user_id:
+            raise ForbiddenException("You do not have permission to delete this post")
+        
+        await db.delete(post)
+        await db.commit()
+        return True

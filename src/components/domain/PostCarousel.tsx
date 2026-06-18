@@ -6,6 +6,7 @@ import { WorkoutPost } from '@/components/domain/WorkoutPost'
 export interface PostCarouselItem {
   id: number
   author: string
+  authorId: number
   initials: string
   timeAgo: string
   content: string
@@ -18,6 +19,8 @@ export interface PostCarouselItem {
 interface PostCarouselProps {
   posts: PostCarouselItem[]
   onLikeToggle?: (postId: number) => void
+  currentUserId?: number
+  onDeletePost?: (postId: number) => void
   loop?: boolean
 }
 
@@ -44,7 +47,13 @@ const variants = {
 
 const transition = { type: 'spring' as const, stiffness: 320, damping: 32 }
 
-export function PostCarousel({ posts, onLikeToggle, loop = false }: PostCarouselProps) {
+export function PostCarousel({
+  posts,
+  onLikeToggle,
+  currentUserId,
+  onDeletePost,
+  loop = false,
+}: PostCarouselProps) {
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState(1)
 
@@ -101,6 +110,8 @@ export function PostCarousel({ posts, onLikeToggle, loop = false }: PostCarousel
               comments={post.comments}
               isLiked={post.isLiked}
               onLikeToggle={onLikeToggle}
+              isAuthor={post.authorId === currentUserId}
+              onDelete={onDeletePost}
             />
           </motion.div>
         </AnimatePresence>
