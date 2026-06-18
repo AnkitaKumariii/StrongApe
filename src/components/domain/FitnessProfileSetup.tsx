@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { useAuth } from "@/context/AuthContext"
 import { GlowingEffect } from "@/components/ui/glowing-effect"
+import DotGrid from "@/components/ui/DotGrid"
+import TrueFocus from "@/components/ui/TrueFocus"
 
 export function FitnessProfileSetup() {
   const { user, updateProfile } = useAuth()
@@ -170,8 +172,8 @@ export function FitnessProfileSetup() {
         >
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-              Your <span className="text-primary">Fitness Profile</span>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight flex items-center justify-center gap-2">
+              Your <span className="text-primary"><TrueFocus sentence="Fitness Profile" manualMode={true} blurAmount={2} /></span>
             </h1>
             <p className="text-slate-500 max-w-xl mx-auto text-lg font-medium">
               All set! Here's a summary of your personal fitness profile.
@@ -179,12 +181,18 @@ export function FitnessProfileSetup() {
           </div>
 
           {/* Card */}
-          <div className="bg-gradient-to-br from-primary/10 via-white to-slate-50 border border-primary/20 rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
+          <div className="bg-white border border-primary/20 rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
+            {/* DotGrid Background */}
+            <DotGrid 
+              baseColor="#93c5fd" 
+              activeColor="#0068f9" 
+              className="opacity-60"
+              dotSize={6}
+              gap={64}
+            />
             {/* Decorative blobs */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-60 h-60 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-
-
 
             {/* User name & goal */}
             <div className="text-center mb-8 relative z-10">
@@ -276,7 +284,7 @@ export function FitnessProfileSetup() {
             >
               <button
                 onClick={() => setSaveSuccess(false)}
-                className="w-full py-3.5 border-2 border-primary/30 hover:border-primary text-primary font-bold rounded-xl transition-all hover:bg-primary/5 text-sm tracking-wide"
+                className="w-full py-3.5 bg-white border-2 border-primary/30 hover:border-primary text-primary font-bold rounded-xl transition-all hover:bg-slate-50 text-sm tracking-wide shadow-sm"
               >
                 Edit Profile
               </button>
@@ -309,7 +317,7 @@ export function FitnessProfileSetup() {
             <div className="p-3 bg-primary/10 rounded-2xl">
               <User className="w-6 h-6 text-primary" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Your Fitness Profile</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">Your <span className="text-primary"><TrueFocus sentence="Fitness Profile" manualMode={true} blurAmount={2} /></span></h2>
           </div>
           <p className="text-slate-500 font-medium">Tell us about yourself to get personalized workout and meal plans</p>
         </div>

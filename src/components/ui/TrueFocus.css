@@ -1,0 +1,59 @@
+.focus-container {
+  display: inline-flex;
+  gap: 0.25em; /* relative to font-size */
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+.focus-word {
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.3s ease;
+}
+
+.focus-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: content-box;
+  padding: 4px; /* Give it some breathing room */
+  margin: -4px 0 0 -4px;
+}
+
+.focus-frame .corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--border-color);
+  box-shadow: 0 0 10px var(--glow-color);
+}
+
+.focus-frame .corner.top-left {
+  top: 0;
+  left: 0;
+  border-top: 2px solid var(--border-color);
+  border-left: 2px solid var(--border-color);
+}
+
+.focus-frame .corner.top-right {
+  top: 0;
+  right: 0;
+  border-top: 2px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
+}
+
+.focus-frame .corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid var(--border-color);
+  border-left: 2px solid var(--border-color);
+}
+
+.focus-frame .corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
+}

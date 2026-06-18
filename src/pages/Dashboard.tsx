@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Layout } from "@/components/layout/Layout"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
@@ -13,10 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Link } from "react-router-dom"
-import { Trophy, Activity, Target, Flame, Dumbbell, ScanLine } from "lucide-react"
+import { Trophy, Activity, Target, Flame, Dumbbell, ScanLine, Image as ImageIcon, ListChecks } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { api } from "@/lib/api"
-import { motion, AnimatePresence } from "framer-motion"
 
 function PostSkeleton() {
   return (
@@ -164,7 +164,8 @@ export function Dashboard() {
 
   // States
   const [posts, setPosts] = useState<Post[]>([]);
-  const [visiblePostsCount, setVisiblePostsCount] = useState(2);
+  const [visiblePostsCount, setVisiblePostsCount] = useState(5);
+  const [isPostFocused, setIsPostFocused] = useState(false);
   const [feedLoading, setFeedLoading] = useState(true);
 
   const [postContent, setPostContent] = useState("");
@@ -403,21 +404,36 @@ export function Dashboard() {
 
         {/* Top Section - Feed */}
         <div className="space-y-6 w-full">
-          <Card className="border-slate-200 shadow-sm">
+          <motion.div
+            animate={{
+              boxShadow: isPostFocused ? "0 10px 25px -5px rgba(0, 104, 249, 0.15)" : "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+              borderColor: isPostFocused ? "rgba(0, 104, 249, 0.3)" : "rgba(226, 232, 240, 1)",
+            }}
+            className="rounded-xl bg-white border border-slate-200 transition-colors duration-200"
+          >
             <CardContent className="p-4 flex gap-4">
-              <Avatar className="w-10 h-10 flex-shrink-0">
-                <AvatarFallback className="bg-primary text-white font-bold">
+              <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-transparent hover:border-primary transition-all cursor-pointer">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold">
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <form onSubmit={handleCreatePost} className="space-y-4">
-                  <Input
-                    placeholder="Share your workout or ask the community..."
-                    className="border-none shadow-none text-base focus-visible:ring-0 px-0"
-                    value={postContent}
-                    onChange={(e) => setPostContent(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder="Share your workout or ask the community..."
+                      className="border-none shadow-none text-base focus-visible:ring-0 px-0 h-10 placeholder:text-slate-400 bg-transparent relative z-10"
+                      value={postContent}
+                      onChange={(e) => setPostContent(e.target.value)}
+                      onFocus={() => setIsPostFocused(true)}
+                      onBlur={() => setIsPostFocused(false)}
+                    />
+                    <motion.div 
+                      initial={false}
+                      animate={{ width: isPostFocused || postContent ? "100%" : "0%" }}
+                      className="absolute bottom-0 left-0 h-[2px] bg-primary/20 rounded-full origin-left"
+                    />
+                  </div>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -425,51 +441,97 @@ export function Dashboard() {
                     style={{ display: "none" }}
                     onChange={handleFileChange}
                   />
-                  {previewUrl && (
-                    <div className="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2 max-w-xs group">
-                      <img src={previewUrl} alt="Preview" className="w-full h-auto object-cover max-h-48" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedFile(null);
-                          setPreviewUrl(null);
-                        }}
-                        className="absolute top-2 right-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full p-1 cursor-pointer transition-colors"
+                  <AnimatePresence>
+                    {previewUrl && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="relative rounded-xl overflow-hidden bg-slate-50 border border-slate-200 max-w-xs group"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  {fileError && (
-                    <p className="text-xs font-bold text-red-500 mt-1">{fileError}</p>
-                  )}
-                  <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <img src={previewUrl} alt="Preview" className="w-full h-auto object-cover max-h-48" />
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setPreviewUrl(null);
+                          }}
+                          className="absolute top-2 right-2 bg-slate-900/60 hover:bg-slate-900/80 text-white rounded-full p-1.5 cursor-pointer backdrop-blur-sm transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </motion.button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <AnimatePresence>
+                    {fileError && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="text-xs font-bold text-red-500 mt-1"
+                      >
+                        {fileError}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                  
+                  <motion.div 
+                    animate={{ paddingTop: (isPostFocused || postContent || previewUrl) ? 12 : 8 }}
+                    className="flex justify-between items-center border-t border-slate-100 transition-all"
+                  >
                     <div className="flex gap-2">
-                      <Button
+                      <motion.button
+                        whileHover={{ backgroundColor: "rgba(241, 245, 249, 1)", color: "rgba(15, 23, 42, 1)" }}
+                        whileTap={{ scale: 0.95 }}
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-slate-500 rounded-full font-medium cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-1.5 text-slate-500 rounded-full font-medium cursor-pointer transition-colors text-sm"
                         onClick={() => fileInputRef.current?.click()}
                       >
+                        <ImageIcon className="w-4 h-4" />
                         Photo
-                      </Button>
-                      <Button type="button" variant="ghost" size="sm" className="text-slate-500 rounded-full font-medium">Routine</Button>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ backgroundColor: "rgba(241, 245, 249, 1)", color: "rgba(15, 23, 42, 1)" }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button" 
+                        className="flex items-center gap-2 px-3 py-1.5 text-slate-500 rounded-full font-medium transition-colors text-sm"
+                      >
+                        <ListChecks className="w-4 h-4" />
+                        Routine
+                      </motion.button>
                     </div>
-                    <Button
-                      type="submit"
-                      className="rounded-full font-bold px-6 cursor-pointer"
-                      disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
+                    <motion.div
+                      animate={{
+                        scale: (postContent.trim() || selectedFile) ? 1 : 0.95,
+                      }}
                     >
-                      {postSubmitting ? "Posting..." : "Post"}
-                    </Button>
-                  </div>
+                      <Button
+                        type="submit"
+                        className={`rounded-full font-bold px-6 cursor-pointer transition-all duration-300 ${
+                          (postContent.trim() || selectedFile) 
+                            ? "bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5" 
+                            : "bg-slate-100 text-slate-400"
+                        }`}
+                        disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
+                      >
+                        {postSubmitting ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Posting
+                          </div>
+                        ) : "Post"}
+                      </Button>
+                    </motion.div>
+                  </motion.div>
                 </form>
               </div>
             </CardContent>
-          </Card>
+          </motion.div>
 
           {/* Active Community Members */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
