@@ -344,12 +344,12 @@ export function Dashboard() {
       <FitnessProfileSetup />
 
       {/* Features Quick Links */}
-      <div className="bg-slate-900 rounded-3xl p-8 mb-12 shadow-lg border border-slate-800">
+      <div className="bg-white rounded-3xl p-8 mb-12 shadow-lg border border-slate-200">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
             Everything You Need for <span className="text-primary">Fitness Success</span>
           </h2>
-          <p className="text-sm text-slate-400 max-w-xl mx-auto font-medium">
+          <p className="text-sm text-slate-500 max-w-xl mx-auto font-medium">
             This comprehensive platform combines cutting-edge AI technology with proven fitness science to deliver results that exceed your expectations.
           </p>
         </div>
@@ -367,6 +367,14 @@ export function Dashboard() {
 
         {/* Top Section - Feed */}
         <div className="space-y-6 w-full">
+          {/* Active Community Members */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+            <h3 className="font-bold text-slate-900 mb-6 text-center">Active Community Members</h3>
+            <div className="flex flex-row items-center justify-center w-full">
+              <AnimatedTooltip items={people} />
+            </div>
+          </div>
+
           <motion.div
             animate={{
               boxShadow: isPostFocused ? "0 10px 25px -5px rgba(0, 104, 249, 0.15)" : "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
@@ -495,13 +503,6 @@ export function Dashboard() {
             </CardContent>
           </motion.div>
 
-          {/* Active Community Members */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-900 mb-6 text-center">Active Community Members</h3>
-            <div className="flex flex-row items-center justify-center w-full">
-              <AnimatedTooltip items={people} />
-            </div>
-          </div>
 
           <div className="flex items-center justify-between pb-2">
             <h2 className="font-bold text-lg text-slate-900">Community Feed</h2>

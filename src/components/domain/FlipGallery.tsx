@@ -227,11 +227,11 @@ export function FlipGallery({
 
   return (
     <div className="flip-gallery w-full">
-      <div className="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 md:p-8 flex flex-col items-center">
+      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col items-center">
         <div className="mb-6 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="text-center sm:text-left">
-            <h2 className="text-xl font-bold text-white tracking-tight">{heading}</h2>
-            <p className="text-slate-400 font-semibold text-xs mt-1">{subtitle}</p>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">{heading}</h2>
+            <p className="text-slate-500 font-semibold text-xs mt-1">{subtitle}</p>
           </div>
           {onTryOut && (
             <Button
