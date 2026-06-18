@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { BackgroundBeamsDemo } from "@/components/ui/background-beams-demo"
 
 export function Landing() {
   const { login, register } = useAuth();
@@ -194,6 +195,9 @@ export function Landing() {
             </div>
           </div>
         </section>
+
+        {/* Exact Demo */}
+        <BackgroundBeamsDemo />
       </main>
 
       {/* Login Dialog */}

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { useAuth } from "@/context/AuthContext"
 import { GlowingEffect } from "@/components/ui/glowing-effect"
-import DotGrid from "@/components/ui/DotGrid"
+import { BackgroundBeams } from "@/components/ui/background-beams"
 import TrueFocus from "@/components/ui/TrueFocus"
 
 export function FitnessProfileSetup() {
@@ -182,17 +182,11 @@ export function FitnessProfileSetup() {
 
           {/* Card */}
           <div className="bg-white border border-primary/20 rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden">
-            {/* DotGrid Background */}
-            <DotGrid 
-              baseColor="#93c5fd" 
-              activeColor="#0068f9" 
-              className="opacity-60"
-              dotSize={6}
-              gap={64}
-            />
+            <BackgroundBeams />
+            
             {/* Decorative blobs */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-60 h-60 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none z-0" />
+            <div className="absolute bottom-0 left-0 w-60 h-60 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none z-0" />
 
             {/* User name & goal */}
             <div className="text-center mb-8 relative z-10">

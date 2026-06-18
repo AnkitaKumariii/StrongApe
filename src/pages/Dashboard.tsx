@@ -428,7 +428,7 @@ export function Dashboard() {
                       onFocus={() => setIsPostFocused(true)}
                       onBlur={() => setIsPostFocused(false)}
                     />
-                    <motion.div 
+                    <motion.div
                       initial={false}
                       animate={{ width: isPostFocused || postContent ? "100%" : "0%" }}
                       className="absolute bottom-0 left-0 h-[2px] bg-primary/20 rounded-full origin-left"
@@ -469,7 +469,7 @@ export function Dashboard() {
                   </AnimatePresence>
                   <AnimatePresence>
                     {fileError && (
-                      <motion.p 
+                      <motion.p
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
@@ -479,8 +479,8 @@ export function Dashboard() {
                       </motion.p>
                     )}
                   </AnimatePresence>
-                  
-                  <motion.div 
+
+                  <motion.div
                     animate={{ paddingTop: (isPostFocused || postContent || previewUrl) ? 12 : 8 }}
                     className="flex justify-between items-center border-t border-slate-100 transition-all"
                   >
@@ -495,10 +495,10 @@ export function Dashboard() {
                         <ImageIcon className="w-4 h-4" />
                         Photo
                       </motion.button>
-                      <motion.button 
+                      <motion.button
                         whileHover={{ backgroundColor: "rgba(241, 245, 249, 1)", color: "rgba(15, 23, 42, 1)" }}
                         whileTap={{ scale: 0.95 }}
-                        type="button" 
+                        type="button"
                         className="flex items-center gap-2 px-3 py-1.5 text-slate-500 rounded-full font-medium transition-colors text-sm"
                       >
                         <ListChecks className="w-4 h-4" />
@@ -512,11 +512,10 @@ export function Dashboard() {
                     >
                       <Button
                         type="submit"
-                        className={`rounded-full font-bold px-6 cursor-pointer transition-all duration-300 ${
-                          (postContent.trim() || selectedFile) 
-                            ? "bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5" 
+                        className={`rounded-full font-bold px-6 cursor-pointer transition-all duration-300 ${(postContent.trim() || selectedFile)
+                            ? "bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
                             : "bg-slate-100 text-slate-400"
-                        }`}
+                          }`}
                         disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
                       >
                         {postSubmitting ? (

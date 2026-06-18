@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { api } from "@/lib/api"
 import { Camera, Upload, Loader2, Flame, Beef, Wheat, Droplets, AlertCircle } from "lucide-react"
+import TextType from "@/components/ui/TextType"
+import { CanvasText } from "@/components/ui/canvas-text"
+import { FileUpload } from "@/components/ui/file-upload"
 
 interface NutritionInfo {
   calories: number
@@ -92,12 +95,35 @@ export function FoodScanner() {
     <Layout>
       <div className="max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] px-4 py-8">
         <div className="w-full text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900">
-            AI <span className="text-primary">Food Scanner</span>
+          <h1 className="group relative text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900">
+            AI{" "}
+            <CanvasText
+              text="Food Scanner"
+              backgroundClassName="bg-slate-900"
+              colors={[
+                "rgba(0, 104, 249, 1)",
+                "rgba(0, 104, 249, 0.9)",
+                "rgba(0, 104, 249, 0.8)",
+                "rgba(0, 104, 249, 0.7)",
+                "rgba(0, 104, 249, 0.6)",
+                "rgba(0, 104, 249, 0.5)",
+                "rgba(0, 104, 249, 0.4)",
+                "rgba(0, 104, 249, 0.3)",
+                "rgba(0, 104, 249, 0.2)",
+                "rgba(0, 104, 249, 0.1)",
+              ]}
+              lineGap={4}
+              animationDuration={20}
+            />
           </h1>
-          <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed">
-            Upload or take a photo of your food to get instant nutritional analysis and health insights.
-          </p>
+          <TextType
+            as="p"
+            className="text-slate-500 text-base md:text-lg font-medium leading-relaxed justify-center"
+            text="Upload or take a photo of your food to get instant nutritional analysis and health insights."
+            typingSpeed={30}
+            loop={false}
+            showCursor={false}
+          />
         </div>
 
         <Card className="w-full border-slate-200 shadow-sm">
@@ -130,40 +156,12 @@ export function FoodScanner() {
             )}
 
             {!previewUrl && (
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  setIsDragging(true)
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={onDrop}
-                onClick={() => !loading && fileInputRef.current?.click()}
-                className={`rounded-xl border-2 border-dashed transition-colors ${
-                  loading ? "pointer-events-none opacity-60" : "cursor-pointer"
-                } ${
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : "border-slate-200 hover:border-primary/40 bg-slate-50/50"
-                }`}
-              >
-                <div className="flex flex-col items-center justify-center py-16 px-6">
-                  <Camera className="w-12 h-12 text-slate-300 mb-4" />
-                  <p className="text-slate-900 font-semibold text-lg mb-2">Drop your food image here</p>
-                  <p className="text-slate-400 text-sm mb-6">or</p>
-                  <Button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      fileInputRef.current?.click()
-                    }}
-                    className="rounded-full font-bold shadow-lg shadow-primary/20 gap-2"
-                    disabled={loading}
-                  >
-                    <Upload className="w-4 h-4" />
-                    Choose File
-                  </Button>
-                  <p className="text-slate-400 text-xs mt-6">Supports JPG, PNG, GIF (Max 10MB)</p>
-                </div>
+              <div className="w-full mx-auto min-h-96 border-2 border-dashed bg-slate-50 border-slate-200 hover:bg-slate-100 transition-colors rounded-xl overflow-hidden relative">
+                <FileUpload onChange={(files) => {
+                  if (files && files.length > 0) {
+                    analyzeFile(files[0])
+                  }
+                }} />
               </div>
             )}
 
