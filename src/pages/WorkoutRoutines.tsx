@@ -2,7 +2,9 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Layout } from "@/components/layout/Layout"
 import { Button } from "@/components/ui/button"
+import TextType from "@/components/ui/TextType"
 import { Card, CardContent } from "@/components/ui/card"
+import { CanvasText } from "@/components/ui/canvas-text"
 import { api } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import {
@@ -162,12 +164,35 @@ export function WorkoutRoutines() {
     <Layout>
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900">
-            AI <span className="text-primary">Workout Routines</span>
+          <h1 className="group relative text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900">
+            AI{" "}
+            <CanvasText
+              text="Workout Routines"
+              backgroundClassName="bg-slate-900"
+              colors={[
+                "rgba(0, 104, 249, 1)",
+                "rgba(0, 104, 249, 0.9)",
+                "rgba(0, 104, 249, 0.8)",
+                "rgba(0, 104, 249, 0.7)",
+                "rgba(0, 104, 249, 0.6)",
+                "rgba(0, 104, 249, 0.5)",
+                "rgba(0, 104, 249, 0.4)",
+                "rgba(0, 104, 249, 0.3)",
+                "rgba(0, 104, 249, 0.2)",
+                "rgba(0, 104, 249, 0.1)",
+              ]}
+              lineGap={4}
+              animationDuration={20}
+            />
           </h1>
-          <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed">
-            Get a personalized 3-day workout plan built from your fitness profile and goals.
-          </p>
+          <TextType
+            as="p"
+            className="text-slate-500 text-base md:text-lg font-medium leading-relaxed justify-center"
+            text="Get a personalized 3-day workout plan built from your fitness profile and goals."
+            typingSpeed={30}
+            loop={false}
+            showCursor={false}
+          />
         </div>
 
         {!hasProfile ? (
