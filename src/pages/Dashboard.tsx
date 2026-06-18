@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { ShuffleHero } from "@/components/ui/shuffle-hero"
 import { Layout } from "@/components/layout/Layout"
 import { XPProgress } from "@/components/domain/XPProgress"
 import { UserCard } from "@/components/domain/UserCard"
@@ -324,35 +325,12 @@ export function Dashboard() {
 
   return (
     <Layout>
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-blue-400 p-8 md:p-12 mb-8 shadow-lg">
-        <Meteors number={25} className="before:from-white bg-white shadow-[0_0_0_1px_#ffffff50]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">
-              <EncryptedText
-                text={`Welcome to StrongApe, ${user?.username || "Ape"}.`}
-                encryptedClassName="text-white/40 font-mono"
-                revealedClassName="text-white"
-                revealDelayMs={80}
-              />
-            </h1>
-            <p className="text-white/80 font-medium flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-              Find a training partner and earn XP
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Button onClick={() => { setLogError(""); setIsLogWorkoutOpen(true); }} variant="secondary" className="rounded-full font-bold cursor-pointer">
-              Log Workout
-            </Button>
-            <Button asChild variant="outline" className="rounded-full font-bold text-white border-white/20 bg-white/10 hover:bg-white/20">
-              <a href="/nearby">Find Partner</a>
-            </Button>
-          </div>
-        </div>
-      </div>
+
+
+      <ShuffleHero 
+        username={user?.username} 
+        onLogWorkoutClick={() => { setLogError(""); setIsLogWorkoutOpen(true); }} 
+      />
 
       <FitnessProfileSetup />
 
@@ -489,8 +467,8 @@ export function Dashboard() {
                       <Button
                         type="submit"
                         className={`rounded-full font-bold px-6 cursor-pointer transition-all duration-300 ${(postContent.trim() || selectedFile)
-                            ? "bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                            : "bg-slate-100 text-slate-400"
+                          ? "bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                          : "bg-slate-100 text-slate-400"
                           }`}
                         disabled={postSubmitting || (!postContent.trim() && !selectedFile)}
                       >
