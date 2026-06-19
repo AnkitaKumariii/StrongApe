@@ -24,7 +24,7 @@ const items = [
     title: "Banana",
     secondary: "Cal: 105 | Pro: 1g | Carbs: 27g | Fat: 0g",
     text: "A naturally sweet, portable snack rich in potassium, vitamin B6, and quick-digesting carbs. Great for pre- or post-workout energy and muscle cramp prevention.",
-    image: "https://images.unsplash.com/photo-1550258214-5299e1289dfd?w=500&auto=format&fit=crop&q=80",
+    image: "/banana.png",
   },
 ]
 
