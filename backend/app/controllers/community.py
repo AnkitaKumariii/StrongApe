@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.community import CommunityService
-from app.schemas.community import CommunityCreate, CommunityOut, CommunityMemberOut
+from app.schemas.community import CommunityCreate, CommunityUpdate, CommunityOut, CommunityMemberOut
 from app.models.user import User
 from typing import List, Optional
 
 class CommunityController:
     @staticmethod
-    async def create_community(db: AsyncSession, comm_in: CommunityCreate) -> CommunityOut:
-        db_comm = await CommunityService.create_community(db=db, obj_in=comm_in)
+    async def create_community(db: AsyncSession, comm_in: CommunityCreate, creator_id: int) -> CommunityOut:
+        db_comm = await CommunityService.create_community(db=db, obj_in=comm_in, creator_id=creator_id)
         return CommunityOut(
             id=db_comm.id,
             name=db_comm.name,
@@ -15,9 +15,19 @@ class CommunityController:
             cover_image_url=db_comm.cover_image_url,
             category=db_comm.category,
             created_at=db_comm.created_at,
-            member_count=0,
-            is_member=False
+            member_count=1,
+            is_member=True,
+            is_admin=True,
         )
+
+    @staticmethod
+    async def update_community(
+        db: AsyncSession, community_id: int, comm_in: CommunityUpdate, current_user: User
+    ) -> CommunityOut:
+        data = await CommunityService.update_community(
+            db=db, community_id=community_id, obj_in=comm_in, current_user_id=current_user.id
+        )
+        return CommunityOut(**data)
 
     @staticmethod
     async def list_communities(
