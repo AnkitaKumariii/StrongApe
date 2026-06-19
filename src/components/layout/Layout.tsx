@@ -4,7 +4,7 @@ import { Sidebar } from "./Sidebar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
+
 
 interface LayoutProps {
   children: React.ReactNode
@@ -124,39 +124,16 @@ export function Layout({ children }: LayoutProps) {
             {user && user.id !== 0 ? (
               children
             ) : (
-              <div className="flex flex-col">
-                {/* Visual Guest Banner */}
-                <div 
-                  onClick={() => setIsRegisterOpen(true)}
-                  className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 text-amber-700 dark:text-amber-400 p-4 rounded-3xl mb-8 text-sm font-semibold flex items-center justify-between shadow-sm cursor-pointer hover:bg-amber-500/15 transition-all animate-pulse"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
-                    <span className="font-bold flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      Guest Preview Mode
-                    </span>
-                    <span className="hidden md:inline text-slate-500 dark:text-slate-400 font-medium">— Click anywhere on the page to register & save your progress!</span>
-                  </div>
-                  <button 
-                    type="button"
-                    className="bg-amber-600 dark:bg-amber-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors"
-                  >
-                    Sign Up Now
-                  </button>
-                </div>
-
-                {/* Click capturing preview wrapper */}
-                <div 
-                  onClickCapture={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsRegisterOpen(true);
-                  }}
-                  className="cursor-pointer select-none opacity-90 filter blur-[0.2px] hover:opacity-95 transition-all duration-300"
-                >
-                  {children}
-                </div>
+              /* Click capturing preview wrapper */
+              <div 
+                onClickCapture={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsRegisterOpen(true);
+                }}
+                className="cursor-pointer select-none opacity-90 filter blur-[0.2px] hover:opacity-95 transition-all duration-300"
+              >
+                {children}
               </div>
             )}
           </div>
