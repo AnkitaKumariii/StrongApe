@@ -37,6 +37,8 @@ interface AuthContextType {
   setIsLoginOpen: (open: boolean) => void;
   isRegisterOpen: boolean;
   setIsRegisterOpen: (open: boolean) => void;
+  googleClientId: string;
+  loginWithGoogle: (credential: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState<string>("");
 
   const refreshProfile = async () => {
     try {
@@ -76,6 +79,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
+      // 1. Fetch Google Client ID from backend config
+      try {
+        const config = await api.get<{ google_client_id: string }>("/api/auth/config");
+        if (config.google_client_id) {
+          setGoogleClientId(config.google_client_id);
+        }
+      } catch (error) {
+        console.error("Failed to load Google configuration:", error);
+      }
+
+      // 2. Load User Profile if token exists
       if (token) {
         await refreshProfile();
       } else {
@@ -105,6 +119,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     // 2. Automatically log in after registration
     await login(username, password);
+  };
+
+  const loginWithGoogle = async (credential: string) => {
+    const data = await api.post<{ access_token: string; token_type: string }>("/api/auth/google", {
+      credential,
+    });
+    localStorage.setItem("token", data.access_token);
+    setToken(data.access_token);
   };
 
   const logout = () => {
@@ -140,6 +162,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoginOpen,
         isRegisterOpen,
         setIsRegisterOpen,
+        googleClientId,
+        loginWithGoogle,
       }}
     >
       {children}

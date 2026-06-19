@@ -56,3 +56,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[int] = None
+
+class GoogleAuthInput(BaseModel):
+    credential: str

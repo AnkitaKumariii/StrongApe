@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # DB URL — SQLite by default for local dev; use PostgreSQL in production via .env
     DATABASE_URL: str = Field(default=_DEFAULT_DATABASE_URL)
     STATIC_DIR: str = Field(default=_DEFAULT_STATIC_DIR)
+    
+    # Google Sign-In
+    GOOGLE_CLIENT_ID: str = Field(default="")
 
     # Google Gemini (Food Scanner & Workout Routines)
     GEMINI_API_KEY: str = Field(default="")

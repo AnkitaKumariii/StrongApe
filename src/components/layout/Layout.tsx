@@ -19,7 +19,9 @@ export function Layout({ children }: LayoutProps) {
     isLoginOpen, 
     setIsLoginOpen, 
     isRegisterOpen, 
-    setIsRegisterOpen 
+    setIsRegisterOpen,
+    googleClientId,
+    loginWithGoogle
   } = useAuth();
 
   // Form Fields
@@ -107,6 +109,68 @@ export function Layout({ children }: LayoutProps) {
     }
   };
 
+  const handleGoogleCallback = async (response: any) => {
+    setError("");
+    setFormLoading(true);
+    try {
+      await loginWithGoogle(response.credential);
+      setIsLoginOpen(false);
+      setIsRegisterOpen(false);
+      resetForm();
+    } catch (err: any) {
+      setError(err.message || "Google authentication failed.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (googleClientId && (isLoginOpen || isRegisterOpen)) {
+      const initGoogleBtn = () => {
+        const googleObj = (window as any).google;
+        if (googleObj) {
+          googleObj.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCallback,
+            auto_select: false,
+          });
+
+          const loginBtnEl = document.getElementById("google-login-btn");
+          if (loginBtnEl) {
+            googleObj.accounts.id.renderButton(loginBtnEl, {
+              theme: "outline",
+              size: "large",
+              width: 320,
+              text: "signin_with",
+              shape: "circle",
+            });
+          }
+
+          const registerBtnEl = document.getElementById("google-register-btn");
+          if (registerBtnEl) {
+            googleObj.accounts.id.renderButton(registerBtnEl, {
+              theme: "outline",
+              size: "large",
+              width: 320,
+              text: "signup_with",
+              shape: "circle",
+            });
+          }
+        }
+      };
+
+      initGoogleBtn();
+      const interval = setInterval(() => {
+        if ((window as any).google) {
+          initGoogleBtn();
+          clearInterval(interval);
+        }
+      }, 300);
+
+      return () => clearInterval(interval);
+    }
+  }, [googleClientId, isLoginOpen, isRegisterOpen]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -184,6 +248,23 @@ export function Layout({ children }: LayoutProps) {
             >
               {formLoading ? "Logging in..." : "Log In"}
             </Button>
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                <span className="bg-white dark:bg-slate-900 px-3 text-slate-500">Or continue with</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-center w-full min-h-[40px] pt-1" id="google-login-btn">
+              {!googleClientId && (
+                <span className="text-[11px] text-slate-400 font-semibold italic dark:text-slate-500">
+                  (Configure GOOGLE_CLIENT_ID in backend/.env)
+                </span>
+              )}
+            </div>
+
             <div className="text-center pt-2">
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                 Don't have an account?{" "}
@@ -294,6 +375,23 @@ export function Layout({ children }: LayoutProps) {
             >
               {formLoading ? "Creating Account..." : "Create Account"}
             </Button>
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                <span className="bg-white dark:bg-slate-900 px-3 text-slate-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center w-full min-h-[40px] pt-1" id="google-register-btn">
+              {!googleClientId && (
+                <span className="text-[11px] text-slate-400 font-semibold italic dark:text-slate-500">
+                  (Configure GOOGLE_CLIENT_ID in backend/.env)
+                </span>
+              )}
+            </div>
+
             <div className="text-center pt-2">
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                 Already have an account?{" "}
