@@ -14,8 +14,6 @@ export function Layout({ children }: LayoutProps) {
   const { 
     user, 
     loading, 
-    login, 
-    register, 
     isLoginOpen, 
     setIsLoginOpen, 
     isRegisterOpen, 
@@ -24,89 +22,11 @@ export function Layout({ children }: LayoutProps) {
     loginWithGoogle
   } = useAuth();
 
-  // Form Fields
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-
-  // Form Field Touched States
-  const [touched, setTouched] = useState({
-    fullName: false,
-    username: false,
-    email: false,
-    password: false,
-  });
-
-  // UI States
   const [error, setError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
-  // Client-side Validations
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isUsernameValid = username.trim().length >= 3;
-  const isFullNameValid = fullName.trim().length >= 1;
-  const isPasswordValid = password.length >= 6;
-
-  const isFormValid = isEmailValid && isUsernameValid && isFullNameValid && isPasswordValid;
-
   const resetForm = () => {
-    setEmail("");
-    setUsername("");
-    setFullName("");
-    setPassword("");
     setError("");
-    setTouched({
-      fullName: false,
-      username: false,
-      email: false,
-      password: false,
-    });
-  };
-
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setFormLoading(true);
-    try {
-      await login(username || email, password);
-      setIsLoginOpen(false);
-      resetForm();
-    } catch (err: any) {
-      setError(err.message || "Invalid username/email or password.");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setFormLoading(true);
-
-    // Mark all as touched on submit
-    setTouched({
-      fullName: true,
-      username: true,
-      email: true,
-      password: true,
-    });
-
-    if (!isFormValid) {
-      setError("Please fix the validation errors before submitting.");
-      setFormLoading(false);
-      return;
-    }
-
-    try {
-      await register(email, username, fullName, password);
-      setIsRegisterOpen(false);
-      resetForm();
-    } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
-    } finally {
-      setFormLoading(false);
-    }
   };
 
   const handleGoogleCallback = async (response: any) => {
@@ -124,6 +44,44 @@ export function Layout({ children }: LayoutProps) {
     }
   };
 
+  // Google One Tap Effect
+  React.useEffect(() => {
+    const isGuest = user && user.id === 0;
+    if (googleClientId && isGuest) {
+      const initOneTap = () => {
+        const googleObj = (window as any).google;
+        if (googleObj) {
+          googleObj.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCallback,
+            auto_select: false,
+          });
+          
+          googleObj.accounts.id.prompt((notification: any) => {
+            if (notification.isNotDisplayed()) {
+              console.log("One Tap prompt not displayed:", notification.getNotDisplayedReason());
+            } else if (notification.isSkippedMoment()) {
+              console.log("One Tap prompt skipped:", notification.getSkippedReason());
+            } else if (notification.isDismissedMoment()) {
+              console.log("One Tap prompt dismissed:", notification.getDismissedReason());
+            }
+          });
+        }
+      };
+
+      initOneTap();
+      const interval = setInterval(() => {
+        if ((window as any).google) {
+          initOneTap();
+          clearInterval(interval);
+        }
+      }, 300);
+
+      return () => clearInterval(interval);
+    }
+  }, [googleClientId, user?.id]);
+
+  // Google Modals Button Effect
   React.useEffect(() => {
     if (googleClientId && (isLoginOpen || isRegisterOpen)) {
       const initGoogleBtn = () => {
@@ -207,204 +165,74 @@ export function Layout({ children }: LayoutProps) {
       {/* Global Login Dialog */}
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:rounded-3xl border-slate-200 dark:border-slate-800 max-w-md p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tight">Welcome Back</DialogTitle>
-            <DialogDescription className="text-slate-500 dark:text-slate-400 font-semibold mt-1">
-              Log in to your StrongApe account to resume training.
+          <DialogHeader className="text-center flex flex-col items-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary">
+                <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0" />
+                <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
+              </svg>
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight text-center">Welcome to StrongApe</DialogTitle>
+            <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium text-center mt-1">
+              Join 12,000+ fitness peers, track streaks, and connect.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleLoginSubmit} className="space-y-4 mt-4">
+          <div className="space-y-6 mt-6 flex flex-col items-center">
             {error && (
-              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-xl">
+              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-xl w-full text-center">
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Username or Email</label>
-              <Input
-                type="text"
-                placeholder="ape_warrior"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Password</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20 text-base"
-              disabled={formLoading}
-            >
-              {formLoading ? "Logging in..." : "Log In"}
-            </Button>
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                <span className="bg-white dark:bg-slate-900 px-3 text-slate-500">Or continue with</span>
-              </div>
-            </div>
             
-            <div className="flex justify-center w-full min-h-[40px] pt-1" id="google-login-btn">
+            <div className="flex justify-center w-full min-h-[40px] py-2" id="google-login-btn">
               {!googleClientId && (
                 <span className="text-[11px] text-slate-400 font-semibold italic dark:text-slate-500">
                   (Configure GOOGLE_CLIENT_ID in backend/.env)
                 </span>
               )}
             </div>
-
-            <div className="text-center pt-2">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => { setIsLoginOpen(false); resetForm(); setIsRegisterOpen(true); }}
-                  className="text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
-                >
-                  Sign Up
-                </button>
-              </p>
+            
+            <div className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+              By continuing, you agree to StrongApe's Terms of Service and Privacy Policy.
             </div>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Global Register Dialog */}
       <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
         <DialogContent className="sm:rounded-3xl border-slate-200 dark:border-slate-800 max-w-md p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tight">Create Account</DialogTitle>
-            <DialogDescription className="text-slate-500 dark:text-slate-400 font-semibold mt-1">
-              Join the crew and start leveling up your fitness.
+          <DialogHeader className="text-center flex flex-col items-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary">
+                <path d="M6.5 6.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0" />
+                <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
+              </svg>
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight text-center">Create StrongApe Account</DialogTitle>
+            <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium text-center mt-1">
+              Sign up instantly using Google to unlock all features.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleRegisterSubmit} className="space-y-4 mt-4">
+          <div className="space-y-6 mt-6 flex flex-col items-center">
             {error && (
-              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-xl">
+              <div className="p-3 text-sm font-bold text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 rounded-xl w-full text-center">
                 {error}
               </div>
             )}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Full Name</label>
-              <Input
-                type="text"
-                placeholder="Ankit Kumar"
-                value={fullName}
-                onChange={(e) => {
-                  setFullName(e.target.value);
-                  setTouched(prev => ({ ...prev, fullName: true }));
-                }}
-                onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
-                className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus-visible:ring-primary ${touched.fullName && !isFullNameValid ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                required
-              />
-              {touched.fullName && !isFullNameValid && (
-                <p className="text-xs font-bold text-red-500 mt-1">Full Name is required.</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Username</label>
-              <Input
-                type="text"
-                placeholder="ankit_strong"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setTouched(prev => ({ ...prev, username: true }));
-                }}
-                onBlur={() => setTouched(prev => ({ ...prev, username: true }))}
-                className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus-visible:ring-primary ${touched.username && !isUsernameValid ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                required
-              />
-              <p className={`text-xs font-bold mt-1 ${touched.username && !isUsernameValid ? "text-red-500" : "text-slate-400"}`}>
-                Must be at least 3 characters.
-              </p>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Email Address</label>
-              <Input
-                type="email"
-                placeholder="ankit@strongape.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setTouched(prev => ({ ...prev, email: true }));
-                }}
-                onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
-                className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus-visible:ring-primary ${touched.email && !isEmailValid ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                required
-              />
-              {touched.email && !isEmailValid && (
-                <p className="text-xs font-bold text-red-500 mt-1">Please enter a valid email address.</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Password</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setTouched(prev => ({ ...prev, password: true }));
-                }}
-                onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
-                className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus-visible:ring-primary ${touched.password && !isPasswordValid ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                required
-              />
-              <p className={`text-xs font-bold mt-1 ${touched.password && !isPasswordValid ? "text-red-500" : "text-slate-400"}`}>
-                Must be at least 6 characters.
-              </p>
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-12 rounded-full font-bold shadow-lg shadow-primary/20 text-base mt-2"
-              disabled={formLoading}
-            >
-              {formLoading ? "Creating Account..." : "Create Account"}
-            </Button>
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                <span className="bg-white dark:bg-slate-900 px-3 text-slate-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="flex justify-center w-full min-h-[40px] pt-1" id="google-register-btn">
+            
+            <div className="flex justify-center w-full min-h-[40px] py-2" id="google-register-btn">
               {!googleClientId && (
                 <span className="text-[11px] text-slate-400 font-semibold italic dark:text-slate-500">
                   (Configure GOOGLE_CLIENT_ID in backend/.env)
                 </span>
               )}
             </div>
-
-            <div className="text-center pt-2">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => { setIsRegisterOpen(false); resetForm(); setIsLoginOpen(true); }}
-                  className="text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
-                >
-                  Log In
-                </button>
-              </p>
+            
+            <div className="text-xs text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+              By continuing, you agree to StrongApe's Terms of Service and Privacy Policy.
             </div>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
