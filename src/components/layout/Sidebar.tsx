@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Home, Users, MapPin, MessageSquare, Award, LogOut, Bell, Sun, Moon } from "lucide-react"
+import { Home, Users, MapPin, MessageSquare, Award, LogOut, LogIn, Bell, Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
@@ -10,7 +10,7 @@ import { motion } from "framer-motion"
 export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, logout, setIsLoginOpen } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
   const [theme, setTheme] = useState<"light" | "dark">(
     () => (localStorage.getItem("theme") as "light" | "dark") || "light"
@@ -118,32 +118,65 @@ export function Sidebar() {
           </button>
         </div>
         
-        <button 
-          onClick={() => navigate("/profile")}
-          className={cn("flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors w-full rounded-xl overflow-hidden", isExpanded ? "gap-3 p-3" : "justify-center p-2")}
-        >
-          <Avatar className="shrink-0 w-10 h-10">
-            <AvatarFallback className="bg-primary text-white font-bold">
-              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
-            </AvatarFallback>
-          </Avatar>
-          {isExpanded && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0 text-left">
-              <div className="text-sm font-semibold truncate">{user?.full_name || user?.username || "Ape"}</div>
-              <div className="text-xs text-slate-500 truncate">Level {user?.level || 1}</div>
-            </motion.div>
-          )}
-        </button>
-        <button
-          onClick={logout}
-          className={cn(
-            "flex items-center text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent overflow-hidden",
-            isExpanded ? "gap-3 px-4 py-3 text-sm font-medium" : "justify-center p-3"
-          )}
-        >
-          <LogOut className="w-5 h-5 shrink-0" />
-          {isExpanded && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Log Out</motion.span>}
-        </button>
+        {user && user.id !== 0 ? (
+          <>
+            <button 
+              onClick={() => navigate("/profile")}
+              className={cn("flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors w-full rounded-xl overflow-hidden", isExpanded ? "gap-3 p-3" : "justify-center p-2")}
+            >
+              <Avatar className="shrink-0 w-10 h-10">
+                <AvatarFallback className="bg-primary text-white font-bold">
+                  {user.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
+                </AvatarFallback>
+              </Avatar>
+              {isExpanded && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0 text-left">
+                  <div className="text-sm font-semibold truncate">{user.full_name || user.username || "Ape"}</div>
+                  <div className="text-xs text-slate-500 truncate">Level {user.level || 1}</div>
+                </motion.div>
+              )}
+            </button>
+            <button
+              onClick={logout}
+              className={cn(
+                "flex items-center text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent overflow-hidden",
+                isExpanded ? "gap-3 px-4 py-3 text-sm font-medium" : "justify-center p-3"
+              )}
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              {isExpanded && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Log Out</motion.span>}
+            </button>
+          </>
+        ) : (
+          <>
+            <button 
+              onClick={() => setIsLoginOpen(true)}
+              className={cn("flex items-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors w-full rounded-xl overflow-hidden", isExpanded ? "gap-3 p-3" : "justify-center p-2")}
+            >
+              <Avatar className="shrink-0 w-10 h-10">
+                <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-bold">
+                  G
+                </AvatarFallback>
+              </Avatar>
+              {isExpanded && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0 text-left">
+                  <div className="text-sm font-semibold truncate text-slate-600 dark:text-slate-400">Guest Ape</div>
+                  <div className="text-xs text-slate-400">Not Signed In</div>
+                </motion.div>
+              )}
+            </button>
+            <button
+              onClick={() => setIsLoginOpen(true)}
+              className={cn(
+                "flex items-center text-primary hover:bg-primary/5 rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-none bg-transparent overflow-hidden",
+                isExpanded ? "gap-3 px-4 py-3 text-sm font-bold" : "justify-center p-3"
+              )}
+            >
+              <LogIn className="w-5 h-5 shrink-0" />
+              {isExpanded && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Sign In</motion.span>}
+            </button>
+          </>
+        )}
       </div>
     </motion.aside>
   )

@@ -33,14 +33,36 @@ interface AuthContextType {
     settings?: Record<string, any>;
   }) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  isLoginOpen: boolean;
+  setIsLoginOpen: (open: boolean) => void;
+  isRegisterOpen: boolean;
+  setIsRegisterOpen: (open: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const GUEST_USER: User = {
+  id: 0,
+  email: "guest@strongape.com",
+  username: "guest_ape",
+  full_name: "Guest Ape",
+  avatar_url: null,
+  level: 1,
+  xp: 0,
+  current_streak: 0,
+  gym_name: "StrongApe Gym",
+  location_lat: null,
+  location_lon: null,
+  settings: {},
+  created_at: new Date().toISOString()
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const refreshProfile = async () => {
     try {
@@ -57,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         await refreshProfile();
       } else {
-        setUser(null);
+        setUser(GUEST_USER);
       }
       setLoading(false);
     };
@@ -88,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    setUser(null);
+    setUser(GUEST_USER);
   };
 
   const updateProfile = async (profileData: {
@@ -114,6 +136,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         updateProfile,
         refreshProfile,
+        isLoginOpen,
+        setIsLoginOpen,
+        isRegisterOpen,
+        setIsRegisterOpen,
       }}
     >
       {children}
