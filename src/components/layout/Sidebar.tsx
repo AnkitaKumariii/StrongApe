@@ -54,8 +54,7 @@ export function Sidebar() {
       label: "Messages", 
       icon: <MessageSquare className="w-full h-full" />, 
       onClick: () => navigate("/messages"),
-      isActive: location.pathname === "/messages",
-      badge: 2
+      isActive: location.pathname === "/messages"
     },
     { 
       id: "leaderboard", 
