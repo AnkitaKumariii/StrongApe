@@ -338,6 +338,7 @@ export function Dashboard() {
 
       <ShuffleHero 
         username={user?.username} 
+        isGuest={!user || user.id === 0}
         onLogWorkoutClick={() => { setLogError(""); setIsLogWorkoutOpen(true); }} 
       />
 

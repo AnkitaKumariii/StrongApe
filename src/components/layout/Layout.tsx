@@ -172,7 +172,7 @@ export function Layout({ children }: LayoutProps) {
                 <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
               </svg>
             </div>
-            <DialogTitle className="text-2xl font-black tracking-tight text-center">Welcome to StrongApe</DialogTitle>
+            <DialogTitle className="text-2xl font-black tracking-tight text-center">Welcome Back</DialogTitle>
             <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium text-center mt-1">
               Join 12,000+ fitness peers, track streaks, and connect.
             </DialogDescription>
@@ -198,7 +198,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </DialogContent>
       </Dialog>
-
+ 
       {/* Global Register Dialog */}
       <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
         <DialogContent className="sm:rounded-3xl border-slate-200 dark:border-slate-800 max-w-md p-8 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -209,7 +209,7 @@ export function Layout({ children }: LayoutProps) {
                 <path d="M3 19c0-4 9-4 9-4s9 0 9 4" />
               </svg>
             </div>
-            <DialogTitle className="text-2xl font-black tracking-tight text-center">Create StrongApe Account</DialogTitle>
+            <DialogTitle className="text-2xl font-black tracking-tight text-center">Welcome to StrongApe</DialogTitle>
             <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium text-center mt-1">
               Sign up instantly using Google to unlock all features.
             </DialogDescription>

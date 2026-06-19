@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { EncryptedText } from "./encrypted-text";
 import { Button } from "@/components/ui/button";
 
-export const ShuffleHero = ({ username, onLogWorkoutClick }: { username?: string; onLogWorkoutClick?: () => void }) => {
+export const ShuffleHero = ({ username, isGuest, onLogWorkoutClick }: { username?: string; isGuest?: boolean; onLogWorkoutClick?: () => void }) => {
   return (
     <section className="w-full bg-white border border-slate-100 rounded-3xl p-8 md:p-12 shadow-xl grid grid-cols-1 md:grid-cols-2 items-center gap-12 mb-8 relative overflow-hidden">
       <div className="relative z-10">
@@ -12,7 +12,7 @@ export const ShuffleHero = ({ username, onLogWorkoutClick }: { username?: string
         </span>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
           <EncryptedText
-            text={`Welcome back, ${username || "Ape"}.`}
+            text={isGuest ? "Welcome to StrongApe." : `Welcome back, ${username || "Ape"}.`}
             encryptedClassName="text-slate-400 font-mono"
             revealedClassName="text-slate-900"
             revealDelayMs={80}
