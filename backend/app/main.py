@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.database import Base, engine
 from app.core.errors import register_error_handlers
 from app.routes.api import api_router
+from app.routes.ws_chats import ws_router
 import app.models  # noqa: F401 — register all ORM models before create_all
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ app.add_middleware(
 
 # Register routes
 app.include_router(api_router, prefix="/api")
+app.include_router(ws_router)  # WebSocket routes — no /api prefix
 
 # Mount static directory for uploads
 from fastapi.staticfiles import StaticFiles
