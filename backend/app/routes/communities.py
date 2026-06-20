@@ -58,3 +58,11 @@ async def get_community(
     current_user: User = Depends(get_current_user)
 ):
     return await CommunityController.get_community(db=db, user=current_user, community_id=community_id)
+
+@router.delete("/{community_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_community(
+    community_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    await CommunityController.delete_community(db=db, user=current_user, community_id=community_id)

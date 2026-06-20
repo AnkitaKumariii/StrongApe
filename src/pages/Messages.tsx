@@ -60,7 +60,17 @@ export function Messages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ── WebSocket-powered chat hook ───────────────────────────────────────────
-  const { messages, setMessages, loadingMessages, wsStatus, sendMessage } = useChat(activeThreadId, user?.id);
+  // Compute recipientId early (from threads state) so it's ready for useChat
+  const _activeThread = threads.find((t) => t.id === activeThreadId);
+  const _recipientId = _activeThread
+    ? (_activeThread.participants.find((p) => p.id !== user?.id) ?? _activeThread.participants[0])?.id ?? null
+    : null;
+
+  const { messages, setMessages, loadingMessages, wsStatus, recipientOnline, sendMessage } = useChat(
+    activeThreadId,
+    user?.id,
+    _recipientId,
+  );
 
   // ── Fetch thread list (REST) ──────────────────────────────────────────────
   const fetchThreads = async (selectThreadId?: number, isPolling = false) => {
@@ -199,19 +209,18 @@ export function Messages() {
     return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
-  // ── WS status badge ───────────────────────────────────────────────────────
+  // ── WS status + recipient presence badge ─────────────────────────────────
   const WsIndicator = () => {
-    if (wsStatus === "connected") {
+    // Your own connection is still handshaking
+    if (wsStatus === "connecting") {
       return (
         <div className="flex items-center gap-1.5">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-          </span>
-          <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Live</span>
+          <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Connecting</span>
         </div>
       );
     }
+    // Your socket dropped and is retrying
     if (wsStatus === "reconnecting") {
       return (
         <div className="flex items-center gap-1.5">
@@ -220,11 +229,23 @@ export function Messages() {
         </div>
       );
     }
-    if (wsStatus === "connecting") {
+    // Connected — show actual recipient presence
+    if (wsStatus === "connected") {
+      if (recipientOnline) {
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Online</span>
+          </div>
+        );
+      }
       return (
         <div className="flex items-center gap-1.5">
-          <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Connecting</span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-300" />
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Offline</span>
         </div>
       );
     }
@@ -367,7 +388,10 @@ export function Messages() {
                               {(recipient.full_name || recipient.username).charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                          {/* Green dot: only show for the active thread's recipient when truly online */}
+                          {isActive && recipientOnline && (
+                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                          )}
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -478,7 +502,7 @@ export function Messages() {
                 ) : messages.length === 0 ? (
                   <div className="flex justify-center py-4">
                     <span className="bg-[#FFF5C4] text-yellow-800 shadow-sm text-xs px-4 py-2 rounded-lg text-center max-w-xs leading-relaxed">
-                      Messages are end-to-end encrypted. No one outside of this chat, not even StrongApe, can read them.
+                      Messages are not end-to-end encrypted. Admins of StrongApe can read your messages — maintain a good atmosphere. 🦍
                     </span>
                   </div>
                 ) : (

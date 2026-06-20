@@ -5,6 +5,7 @@ from app.routes.deps import get_current_user
 from app.controllers.user import UserController
 from app.schemas.user import UserOut, UserProfileUpdate
 from app.models.user import User
+from app.services import presence as presence_store
 from typing import List, Dict, Any
 
 router = APIRouter()
@@ -38,4 +39,13 @@ async def get_leaderboard(
     from sqlalchemy.future import select
     result = await db.execute(select(User).order_by(User.xp.desc()).limit(limit))
     return result.scalars().all()
+
+
+@router.get("/{user_id}/presence")
+async def get_user_presence(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    """Returns whether a user currently has an active WebSocket connection."""
+    return {"user_id": user_id, "online": presence_store.is_online(user_id)}
 

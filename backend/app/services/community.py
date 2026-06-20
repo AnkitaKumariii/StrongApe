@@ -221,3 +221,24 @@ class CommunityService:
             "is_member": is_member,
             "is_admin": is_admin,
         }
+
+    @staticmethod
+    async def delete_community(db: AsyncSession, community_id: int, current_user_id: int) -> None:
+        result = await db.execute(
+            select(Community)
+            .where(Community.id == community_id)
+            .options(selectinload(Community.members))
+        )
+        comm = result.scalars().first()
+        if not comm:
+            raise NotFoundException("Community not found")
+
+        is_admin = any(
+            m.user_id == current_user_id and m.role == "admin"
+            for m in comm.members
+        )
+        if not is_admin:
+            raise ForbiddenException("Only community admins can delete this community")
+
+        await db.delete(comm)
+        await db.commit()

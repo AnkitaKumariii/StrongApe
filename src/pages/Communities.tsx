@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { Layout } from "@/components/layout/Layout"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Users, Search, Plus, ChevronRight, ChevronLeft, TrendingUp, Star, Flame, Dumbbell, Wind, Zap, Activity, Shield, Pencil } from "lucide-react"
+import { Users, Search, Plus, ChevronRight, ChevronLeft, TrendingUp, Star, Flame, Dumbbell, Wind, Zap, Activity, Shield, Pencil, Trash2 } from "lucide-react"
 import { api } from "@/lib/api"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -48,10 +48,11 @@ function formatMemberCount(count: number): string {
   return count.toString();
 }
 
-function CommunityCard({ community, onJoin, onEdit }: {
+function CommunityCard({ community, onJoin, onEdit, onDelete }: {
   community: Community;
   onJoin: (id: number) => void;
   onEdit: (community: Community) => void;
+  onDelete: (community: Community) => void;
 }) {
   const gradient = CATEGORY_COLORS[community.category] || "from-primary to-blue-600";
   const badge = CATEGORY_BG[community.category] || "bg-primary/10 text-primary";
@@ -70,15 +71,24 @@ function CommunityCard({ community, onJoin, onEdit }: {
           <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/30" />
           <div className="absolute -left-2 -bottom-4 w-16 h-16 rounded-full bg-white/20" />
         </div>
-        {/* Edit button — only shown for admins on hover */}
+        {/* Edit + Delete buttons — only shown for admins on hover */}
         {community.is_admin && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(community); }}
-            className="absolute top-2 right-2 w-7 h-7 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-lg flex items-center justify-center text-white transition-all cursor-pointer opacity-0 group-hover:opacity-100"
-            title="Edit community"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(community); }}
+              className="w-7 h-7 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-lg flex items-center justify-center text-white transition-all cursor-pointer"
+              title="Edit community"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(community); }}
+              className="w-7 h-7 bg-red-500/70 hover:bg-red-500 backdrop-blur-sm rounded-lg flex items-center justify-center text-white transition-all cursor-pointer"
+              title="Delete community"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -184,6 +194,10 @@ export function Communities() {
   const [editCategory, setEditCategory] = useState("Powerlifting");
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
+
+  // Delete Community
+  const [deleteTarget, setDeleteTarget] = useState<Community | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Tab scroll
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -293,6 +307,20 @@ export function Communities() {
       setEditError(err.message || "Failed to update community.");
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleDeleteCommunity = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/api/communities/${deleteTarget.id}`);
+      setCommunities(prev => prev.filter(c => c.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err: any) {
+      console.error("Failed to delete community:", err);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -507,6 +535,7 @@ export function Communities() {
                   community={community}
                   onJoin={handleJoin}
                   onEdit={handleOpenEdit}
+                  onDelete={setDeleteTarget}
                 />
               </motion.div>
             ))}
@@ -666,6 +695,55 @@ export function Communities() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* ── Delete Community Confirmation Dialog ── */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <DialogContent className="sm:rounded-3xl border-slate-200 max-w-sm p-0 bg-white overflow-hidden">
+          <div className="bg-gradient-to-r from-red-500 to-rose-600 p-6 pb-8">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+                <Trash2 className="w-4 h-4 text-white" />
+              </div>
+              <DialogTitle className="text-xl font-black text-white tracking-tight">Delete Community</DialogTitle>
+            </div>
+            <DialogDescription className="text-red-100 font-medium text-sm mt-1">
+              This action is permanent and cannot be undone.
+            </DialogDescription>
+          </div>
+
+          <div className="p-6 -mt-4 bg-white rounded-t-3xl space-y-4">
+            <p className="text-sm text-slate-600 font-medium leading-relaxed">
+              Are you sure you want to delete{" "}
+              <span className="font-black text-slate-900">sa/{deleteTarget?.name}</span>?{" "}
+              All members will be removed and the community will be gone forever.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+                className="flex-1 h-11 rounded-full font-bold border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all text-sm cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteCommunity}
+                disabled={deleteLoading}
+                className="flex-1 h-11 rounded-full font-bold bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 active:scale-[0.98] transition-all text-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {deleteLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Deleting...
+                  </span>
+                ) : "Delete Forever 🗑️"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
+
   )
 }

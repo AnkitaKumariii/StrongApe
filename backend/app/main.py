@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import logging
 
 from fastapi import FastAPI
@@ -8,6 +12,7 @@ from app.core.errors import register_error_handlers
 from app.routes.api import api_router
 from app.routes.ws_chats import ws_router
 import app.models  # noqa: F401 — register all ORM models before create_all
+
 
 logger = logging.getLogger(__name__)
 

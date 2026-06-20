@@ -50,3 +50,7 @@ class CommunityController:
     async def get_community(db: AsyncSession, user: User, community_id: int) -> CommunityOut:
         data = await CommunityService.get_community(db=db, community_id=community_id, current_user_id=user.id)
         return CommunityOut(**data)
+
+    @staticmethod
+    async def delete_community(db: AsyncSession, user: User, community_id: int) -> None:
+        await CommunityService.delete_community(db=db, community_id=community_id, current_user_id=user.id)

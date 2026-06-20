@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 import asyncio
 from typing import AsyncGenerator, Generator
 import pytest
@@ -5,6 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.database import Base, get_db
+
 
 # Use async sqlite in-memory for testing
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

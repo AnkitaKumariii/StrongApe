@@ -1,23 +1,24 @@
 import logging
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from fastapi import HTTPException
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_configured = False
+_client: genai.Client | None = None
 
 
-def configure_gemini() -> None:
-    global _configured
-    if not settings.GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY is not configured")
-    if not _configured:
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        _configured = True
+def get_client() -> genai.Client:
+    global _client
+    if _client is None:
+        if not settings.GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY is not configured")
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    return _client
 
 
 def model_candidates() -> list[str]:
@@ -58,13 +59,38 @@ def friendly_quota_message(last_error: Exception) -> str:
     )
 
 
-def _generate_with_model(model_name: str, parts: list[Any], system_instruction: str | None):
-    configure_gemini()
+def _build_contents(parts: list[Any]) -> list[types.Part]:
+    """Convert mixed list of str/dict parts into google.genai types.Part objects."""
+    contents: list[types.Part] = []
+    for part in parts:
+        if isinstance(part, str):
+            contents.append(types.Part.from_text(text=part))
+        elif isinstance(part, dict) and "mime_type" in part and "data" in part:
+            contents.append(
+                types.Part.from_bytes(data=part["data"], mime_type=part["mime_type"])
+            )
+        else:
+            # Already a types.Part or similar — pass through
+            contents.append(part)
+    return contents
+
+
+def _generate_with_model(model_name: str, parts: list[Any], system_instruction: str | None) -> str:
+    client = get_client()
+    contents = _build_contents(parts)
+
+    config: types.GenerateContentConfig | None = None
     if system_instruction:
-        model = genai.GenerativeModel(model_name, system_instruction=system_instruction)
-    else:
-        model = genai.GenerativeModel(model_name)
-    return model.generate_content(parts)
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+        )
+
+    response = client.models.generate_content(
+        model=model_name,
+        contents=contents,
+        config=config,
+    )
+    return response.text or ""
 
 
 def generate_text(prompt: str, *, system_instruction: str | None = None) -> str:
@@ -78,8 +104,7 @@ def generate_with_parts(parts: list[Any], *, system_instruction: str | None = No
     for model_name in models:
         try:
             logger.info("Calling Gemini model: %s", model_name)
-            response = _generate_with_model(model_name, parts, system_instruction)
-            text = (response.text or "").strip()
+            text = _generate_with_model(model_name, parts, system_instruction).strip()
             if text:
                 logger.info("Gemini request succeeded with model: %s", model_name)
                 return text

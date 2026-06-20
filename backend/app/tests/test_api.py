@@ -208,8 +208,16 @@ async def test_communities_flow(client: AsyncClient):
     assert comm["name"] == comm_payload["name"]
     comm_id = comm["id"]
 
-    # 2. List all explore communities
-    response = await client.get("/api/communities", headers=headers)
+    # 2. List all explore communities (using User 2)
+    login_payload2 = {
+        "username_or_email": "strongape2",
+        "password": "strongpassword123"
+    }
+    response2 = await client.post("/api/auth/login", json=login_payload2)
+    token2 = response2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    response = await client.get("/api/communities", headers=headers2)
     assert response.status_code == 200
     comms = response.json()
     assert len(comms) >= 1
@@ -217,23 +225,24 @@ async def test_communities_flow(client: AsyncClient):
     assert comms[0]["is_member"] is False
 
     # 3. Join community
-    response = await client.post(f"/api/communities/{comm_id}/join", headers=headers)
+    response = await client.post(f"/api/communities/{comm_id}/join", headers=headers2)
     assert response.status_code == 200
     assert response.json()["community_id"] == comm_id
 
     # 4. List joined communities
-    response = await client.get("/api/communities/joined", headers=headers)
+    response = await client.get("/api/communities/joined", headers=headers2)
     assert response.status_code == 200
     joined = response.json()
     assert len(joined) >= 1
     assert joined[0]["id"] == comm_id
 
     # 5. Get community detail
-    response = await client.get(f"/api/communities/{comm_id}", headers=headers)
+    response = await client.get(f"/api/communities/{comm_id}", headers=headers2)
     assert response.status_code == 200
     detail = response.json()
     assert detail["is_member"] is True
-    assert detail["member_count"] == 1
+    assert detail["member_count"] == 2
+
 
 
 # Test Challenges Flow
