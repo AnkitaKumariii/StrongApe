@@ -30,10 +30,25 @@ export interface Message {
 
 export type WsStatus = "connecting" | "connected" | "reconnecting" | "closed";
 
-const WS_BASE =
-  (import.meta.env.VITE_API_URL || "")
-    .replace(/^http/, "ws")   // http → ws  |  https → wss
-    .replace(/\/$/, "");      // strip trailing slash
+/**
+ * Build the WebSocket base URL.
+ *
+ * Two cases:
+ *  1. VITE_API_URL is set (e.g. "http://localhost:8000") → swap http→ws
+ *  2. VITE_API_URL is empty (Vite proxy mode) → derive from window.location
+ *     so we get "ws://localhost:5173" and the Vite /ws proxy forwards it.
+ */
+function getWsBase(): string {
+  const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+  if (apiUrl) {
+    return apiUrl.replace(/^http/, "ws").replace(/\/$/, "");
+  }
+  // Proxy mode: build from the browser's own origin
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}`;
+}
+
+const WS_BASE = getWsBase();
 
 const MAX_BACKOFF_MS = 16_000;
 

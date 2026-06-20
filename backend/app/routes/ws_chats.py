@@ -100,25 +100,34 @@ async def websocket_chat(
     # 1. Authenticate
     user_id = await _resolve_user_id(token)
     if user_id is None:
+        await websocket.accept()
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
     # 2. Authorise — user must be a participant of this thread
-    async with AsyncSessionLocal() as db:
-        part_res = await db.execute(
-            select(ChatThreadParticipant).where(
-                (ChatThreadParticipant.thread_id == thread_id)
-                & (ChatThreadParticipant.user_id == user_id)
+    try:
+        async with AsyncSessionLocal() as db:
+            part_res = await db.execute(
+                select(ChatThreadParticipant).where(
+                    (ChatThreadParticipant.thread_id == thread_id)
+                    & (ChatThreadParticipant.user_id == user_id)
+                )
             )
-        )
-        if not part_res.scalars().first():
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            return
+            if not part_res.scalars().first():
+                await websocket.accept()
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                return
+    except Exception as exc:
+        logger.error("WS auth DB error user=%s thread=%s: %s", user_id, thread_id, exc)
+        await websocket.accept()
+        await websocket.close(code=1011)  # Internal Error
+        return
 
-        # 3. Accept & register
-        await manager.connect(websocket, thread_id, user_id)
+    # 3. Accept & register
+    await manager.connect(websocket, thread_id, user_id)
 
-        # 4. Message loop
+    # 4. Message loop
+    async with AsyncSessionLocal() as db:
         try:
             while True:
                 raw = await websocket.receive_text()
@@ -134,17 +143,21 @@ async def websocket_chat(
                     content = (data.get("content") or "").strip()
                     if not content:
                         continue
-                    db_msg = await ChatService.send_message(
-                        db=db,
-                        thread_id=thread_id,
-                        sender_id=user_id,
-                        obj_in=ChatMessageCreate(content=content),
-                    )
-                    out = ChatMessageOut.model_validate(db_msg)
-                    await manager.broadcast(
-                        thread_id,
-                        {"type": "message", "data": out.model_dump(mode="json")},
-                    )
+                    try:
+                        db_msg = await ChatService.send_message(
+                            db=db,
+                            thread_id=thread_id,
+                            sender_id=user_id,
+                            obj_in=ChatMessageCreate(content=content),
+                        )
+                        out = ChatMessageOut.model_validate(db_msg)
+                        await manager.broadcast(
+                            thread_id,
+                            {"type": "message", "data": out.model_dump(mode="json")},
+                        )
+                    except Exception as exc:
+                        logger.error("WS send_message error: %s", exc)
+                        await websocket.send_json({"type": "error", "detail": "Failed to send message"})
 
                 elif msg_type == "ping":
                     await websocket.send_json({"type": "pong"})
