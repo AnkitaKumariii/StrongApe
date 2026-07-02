@@ -1,13 +1,13 @@
 /**
- * useChat — WebSocket-powered chat hook with optimistic UI.
+ * useChat — Real-time chat hook with optimistic UI and graceful fallback.
  *
- * Manages the full lifecycle of a WebSocket connection for a given thread:
- *  - Opens a WS connection when threadId changes.
- *  - Reconnects automatically with exponential back-off on failures.
- *  - Pushes received messages directly into state (no polling needed).
- *  - Optimistic UI: messages appear instantly on send; reconciled when the
- *    server echo arrives, rolled back on failure.
- *  - Returns a `wsStatus` so the UI can show "Connecting…" / "Live" / "Reconnecting".
+ * Strategy:
+ *  1. Always load message history via REST on thread open (reliable baseline).
+ *  2. Open a WebSocket for instant real-time delivery.
+ *  3. If the WS is down, fall back to REST polling every 5 s so messages
+ *     always appear even when WebSocket connectivity is unavailable.
+ *  4. Optimistic UI: messages appear immediately on send, reconciled or
+ *     rolled back when the server responds.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -30,132 +30,153 @@ export interface Message {
 
 export type WsStatus = "connecting" | "connected" | "reconnecting" | "closed";
 
-/**
- * Build the WebSocket base URL.
- *
- * Two cases:
- *  1. VITE_API_URL is set (e.g. "http://localhost:8000") → swap http→ws
- *  2. VITE_API_URL is empty (Vite proxy mode) → derive from window.location
- *     so we get "ws://localhost:5173" and the Vite /ws proxy forwards it.
- */
+/** Derive the WebSocket base URL from env or window.location (proxy mode). */
 function getWsBase(): string {
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
   if (apiUrl) {
     return apiUrl.replace(/^http/, "ws").replace(/\/$/, "");
   }
-  // Proxy mode: build from the browser's own origin
+  // Vite proxy mode: connect to the same host, Vite's /ws rule forwards it
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${protocol}//${window.location.host}`;
 }
 
 const WS_BASE = getWsBase();
-
 const MAX_BACKOFF_MS = 16_000;
+const POLL_INTERVAL_MS = 5_000; // fallback poll when WS is down
 
-/** Generate a unique temporary key for an optimistic message. */
 const mkOptId = () => `opt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-export function useChat(threadId: number | null, currentUserId?: number) {
+export function useChat(threadId: number | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [wsStatus, setWsStatus] = useState<WsStatus>("closed");
 
+  // Refs — stable across renders, no re-render on change
   const wsRef = useRef<WebSocket | null>(null);
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mountedRef = useRef(true);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wsConnectedRef = useRef(false);
+  const activeThreadRef = useRef<number | null>(null);
 
-  // ── REST: load initial history ────────────────────────────────────────────
-  const loadHistory = useCallback(async (id: number) => {
+  // ── REST: poll/fetch messages ─────────────────────────────────────────────
+  const fetchMessages = useCallback(async (id: number, signal?: AbortSignal) => {
     try {
-      setLoadingMessages(true);
-      const data = await api.get<Message[]>(`/api/chats/threads/${id}/messages`);
-      if (mountedRef.current) setMessages(data);
-    } catch (err) {
-      console.error("Failed to load message history:", err);
-    } finally {
-      if (mountedRef.current) setLoadingMessages(false);
+      const data = await api.get<Message[]>(
+        `/api/chats/threads/${id}/messages`,
+        signal ? { signal } : undefined
+      );
+      // Don't overwrite state if there are pending optimistic messages in-flight
+      setMessages((prev) => {
+        if (prev.some((m) => m.pending)) return prev;
+        return data;
+      });
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        console.error("Failed to fetch messages:", err);
+      }
     }
   }, []);
 
-  // ── WebSocket lifecycle ───────────────────────────────────────────────────
+  // ── WebSocket ─────────────────────────────────────────────────────────────
   const openSocket = useCallback((id: number) => {
-    if (!mountedRef.current) return;
-
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    // Tear down any existing socket cleanly
     if (wsRef.current) {
       wsRef.current.onclose = null;
       wsRef.current.close();
       wsRef.current = null;
     }
 
+    wsConnectedRef.current = false;
     setWsStatus(retryCountRef.current === 0 ? "connecting" : "reconnecting");
 
-    const url = `${WS_BASE}/ws/chats/${id}?token=${encodeURIComponent(token)}`;
-    const ws = new WebSocket(url);
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(
+        `${WS_BASE}/ws/chats/${id}?token=${encodeURIComponent(token)}`
+      );
+    } catch (e) {
+      console.error("WS URL error:", e);
+      return;
+    }
     wsRef.current = ws;
 
     ws.onopen = () => {
-      if (!mountedRef.current) return;
+      if (activeThreadRef.current !== id) return; // stale connection
       retryCountRef.current = 0;
+      wsConnectedRef.current = true;
       setWsStatus("connected");
     };
 
     ws.onmessage = (event) => {
-      if (!mountedRef.current) return;
+      if (activeThreadRef.current !== id) return;
       try {
         const payload = JSON.parse(event.data as string);
         if (payload.type === "message") {
           const confirmed: Message = payload.data;
           setMessages((prev) => {
-            // If there's a pending optimistic message with matching content from
-            // the current user, replace the FIRST one (FIFO order) with the
-            // confirmed server message. Otherwise just append (dedup by id).
+            // Replace the first matching pending optimistic message
             const optIdx = prev.findIndex(
-              (m) => m.pending && m.content === confirmed.content && m.sender_id === confirmed.sender_id
+              (m) =>
+                m.pending &&
+                m.content === confirmed.content &&
+                m.sender_id === confirmed.sender_id
             );
             if (optIdx !== -1) {
               const next = [...prev];
-              next[optIdx] = { ...confirmed }; // replace optimistic with real
+              next[optIdx] = { ...confirmed };
               return next;
             }
-            // Message from the other participant — just deduplicate and append
+            // Incoming from other participant — deduplicate and append
             if (prev.some((m) => m.id === confirmed.id)) return prev;
             return [...prev, confirmed];
           });
         }
       } catch {
-        // ignore malformed frames
+        /* ignore malformed frames */
       }
     };
 
     ws.onclose = () => {
-      if (!mountedRef.current) return;
+      if (activeThreadRef.current !== id) return; // stale
       wsRef.current = null;
+      wsConnectedRef.current = false;
       setWsStatus("reconnecting");
+      // Exponential back-off
       const delay = Math.min(500 * 2 ** retryCountRef.current, MAX_BACKOFF_MS);
       retryCountRef.current += 1;
       retryTimerRef.current = setTimeout(() => {
-        if (mountedRef.current) openSocket(id);
+        if (activeThreadRef.current === id) openSocket(id);
       }, delay);
     };
 
-    ws.onerror = () => {
-      ws.close();
-    };
-  }, []);
+    ws.onerror = () => ws.close();
+  }, []); // stable — uses refs only
+
+  // ── Fallback REST poll (fires only when WS is not connected) ──────────────
+  const startFallbackPoll = useCallback((id: number) => {
+    if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    pollTimerRef.current = setInterval(() => {
+      if (!wsConnectedRef.current && activeThreadRef.current === id) {
+        fetchMessages(id);
+      }
+    }, POLL_INTERVAL_MS);
+  }, [fetchMessages]);
 
   // ── Send message (optimistic) ─────────────────────────────────────────────
   const sendMessage = useCallback(
     async (content: string, senderId: number): Promise<void> => {
-      if (!threadId) return;
+      const id = activeThreadRef.current;
+      if (!id) return;
 
       const optId = mkOptId();
       const optimistic: Message = {
-        id: -1,               // placeholder — never persisted
-        thread_id: threadId,
+        id: -1,
+        thread_id: id,
         sender_id: senderId,
         content,
         is_read: false,
@@ -164,83 +185,110 @@ export function useChat(threadId: number | null, currentUserId?: number) {
         pending: true,
       };
 
-      // Show instantly
+      // Show instantly in the UI
       setMessages((prev) => [...prev, optimistic]);
 
       const ws = wsRef.current;
       if (ws && ws.readyState === WebSocket.OPEN) {
-        // WS path — server will broadcast back and onmessage reconciles it
+        // Fastest path — WS is open
         ws.send(JSON.stringify({ type: "message", content }));
         return;
       }
 
-      // Fallback: REST (e.g. during reconnect window)
+      // Fallback: REST when WS is temporarily down
       try {
         const confirmed = await api.post<Message>(
-          `/api/chats/threads/${threadId}/messages`,
+          `/api/chats/threads/${id}/messages`,
           { content }
         );
-        // Replace the optimistic placeholder with the confirmed message
         setMessages((prev) => {
           const idx = prev.findIndex((m) => m.optimisticId === optId);
-          if (idx === -1) return prev; // already reconciled
+          if (idx === -1) return prev;
           const next = [...prev];
           next[idx] = { ...confirmed };
           return next;
         });
       } catch (err) {
         console.error("Failed to send message:", err);
-        // Mark as failed so the UI can indicate the error
         setMessages((prev) =>
           prev.map((m) =>
-            m.optimisticId === optId ? { ...m, pending: false, failed: true } : m
+            m.optimisticId === optId
+              ? { ...m, pending: false, failed: true }
+              : m
           )
         );
       }
     },
-    [threadId]
+    [] // uses refs — always fresh
   );
 
-  // ── Effect: open socket & load history when threadId changes ──────────────
+  // ── Main effect: runs when threadId changes ───────────────────────────────
   useEffect(() => {
     if (!threadId) {
+      activeThreadRef.current = null;
       setMessages([]);
       setWsStatus("closed");
       return;
     }
 
-    setMessages([]);
+    activeThreadRef.current = threadId;
     retryCountRef.current = 0;
+    wsConnectedRef.current = false;
 
-    loadHistory(threadId);
+    // Clear existing state immediately
+    setMessages([]);
+    setLoadingMessages(true);
+
+    // 1. Load history via REST (reliable, always works)
+    const controller = new AbortController();
+    api
+      .get<Message[]>(`/api/chats/threads/${threadId}/messages`, {
+        signal: controller.signal,
+      })
+      .then((data) => {
+        setMessages(data);
+        setLoadingMessages(false);
+      })
+      .catch((err: any) => {
+        if (err?.name !== "AbortError") {
+          console.error("Failed to load message history:", err);
+          setLoadingMessages(false);
+        }
+      });
+
+    // 2. Open WebSocket for real-time delivery
     openSocket(threadId);
 
+    // 3. Start fallback poll (only fires when WS is down)
+    startFallbackPoll(threadId);
+
     return () => {
+      // Abort the in-flight REST fetch
+      controller.abort();
+
+      // Stop reconnect timer
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = null;
       }
+
+      // Close WS without triggering the reconnect handler
       if (wsRef.current) {
         wsRef.current.onclose = null;
         wsRef.current.close();
         wsRef.current = null;
       }
+
+      // Stop fallback poll
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+
+      wsConnectedRef.current = false;
       setWsStatus("closed");
     };
-  }, [threadId, loadHistory, openSocket]);
-
-  // ── Cleanup on unmount ────────────────────────────────────────────────────
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-      if (wsRef.current) {
-        wsRef.current.onclose = null;
-        wsRef.current.close();
-      }
-    };
-  }, []);
+  }, [threadId, openSocket, startFallbackPoll]);
 
   return { messages, setMessages, loadingMessages, wsStatus, sendMessage };
 }
